@@ -1,0 +1,65 @@
+{
+  "name": "asm-studio-pro",
+  "version": "1.0.0",
+  "description": "Industrial-Grade MASM 16-bit 8086 Cloud IDE with AI-powered teaching assistant",
+  "main": "backend/src/index.ts",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "start": "cd backend && npm start",
+    "test": "npm run test:backend && npm run test:frontend && npm run test:ai",
+    "test:backend": "cd backend && npm test",
+    "test:frontend": "cd frontend && npm test",
+    "test:ai": "cd ai-engine && npm test",
+    "test:e2e": "playwright test",
+    "test:coverage": "npm run test -- --coverage",
+    "lint": "npm run lint:backend && npm run lint:frontend",
+    "lint:backend": "cd backend && npm run lint",
+    "lint:frontend": "cd frontend && npm run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "deploy:prod": "npm run build && npm run docker:build && npm run docker:up"
+  },
+  "keywords": [
+    "assembly",
+    "8086",
+    "masm",
+    "ide",
+    "education",
+    "ai",
+    "compiler",
+    "debugger",
+    "simulator"
+  ],
+  "author": "ASM-Studio Pro Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/asm-studio-pro.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/asm-studio-pro/issues"
+  },
+  "homepage": "https://asmstudio.dev",
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@types/node": "^20.10.0",
+    "concurrently": "^8.2.2",
+    "prettier": "^3.1.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "mongoose": "^8.19.1"
+  }
+}

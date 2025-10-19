@@ -1,0 +1,166 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* GitHub Dark Theme Colors */
+    --background: 215 28% 7%;        /* #0d1117 */
+    --foreground: 213 27% 84%;       /* #c9d1d9 */
+    
+    --card: 215 28% 11%;             /* #161b22 */
+    --card-foreground: 213 27% 84%;
+    
+    --popover: 215 28% 11%;
+    --popover-foreground: 213 27% 84%;
+    
+    --primary: 213 94% 68%;          /* #58a6ff - Electric Blue */
+    --primary-foreground: 215 28% 7%;
+    
+    --secondary: 215 28% 17%;        /* #21262d */
+    --secondary-foreground: 213 27% 84%;
+    
+    --muted: 215 28% 17%;
+    --muted-foreground: 217 10% 55%; /* #8b949e */
+    
+    --accent: 213 94% 68%;
+    --accent-foreground: 215 28% 7%;
+    
+    --destructive: 0 85% 64%;        /* #f85149 */
+    --destructive-foreground: 213 27% 84%;
+    
+    --success: 137 55% 54%;          /* #3fb950 */
+    --warning: 41 89% 49%;           /* #d29922 */
+    --info: 213 94% 68%;
+    
+    --border: 215 28% 19%;           /* #30363d */
+    --input: 215 28% 19%;
+    --ring: 213 94% 68%;
+    
+    --radius: 0.5rem;
+  }
+  
+  [data-theme="light"] {
+    --background: 0 0% 100%;
+    --foreground: 215 28% 14%;
+    
+    --card: 0 0% 100%;
+    --card-foreground: 215 28% 14%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 28% 14%;
+    
+    --primary: 213 94% 43%;          /* #0969da */
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 210 20% 97%;        /* #f6f8fa */
+    --secondary-foreground: 215 28% 14%;
+    
+    --muted: 210 20% 97%;
+    --muted-foreground: 217 10% 35%;
+    
+    --accent: 213 94% 43%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 85% 50%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 214 20% 87%;
+    --input: 214 20% 87%;
+    --ring: 213 94% 43%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-secondary;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/30 rounded-md;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/50;
+  }
+}
+
+@layer components {
+  /* Ghost text for AI suggestions */
+  .ghost-text {
+    @apply text-muted-foreground/40 italic;
+  }
+  
+  /* Code editor styles */
+  .code-editor {
+    @apply font-mono;
+    font-feature-settings: "liga" 1, "calt" 1;
+    font-variant-ligatures: common-ligatures;
+  }
+  
+  /* Smooth transitions */
+  .smooth-transition {
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  /* Button hover effect */
+  .button-hover {
+    @apply smooth-transition hover:scale-105 active:scale-95;
+  }
+  
+  /* Skeleton loading */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--secondary)) 0%,
+      hsl(var(--muted)) 50%,
+      hsl(var(--secondary)) 100%
+    );
+    background-size: 200% 100%;
+    @apply animate-skeleton-loading;
+  }
+}
+
+/* Monaco Editor Theme Override */
+.monaco-editor {
+  @apply bg-card !important;
+}
+
+.monaco-editor .margin {
+  @apply bg-card !important;
+}
+
+.monaco-editor .line-numbers {
+  @apply text-muted-foreground !important;
+}
+
+/* Framer Motion Animations */
+.page-transition {
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
