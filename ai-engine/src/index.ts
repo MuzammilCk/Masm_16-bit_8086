@@ -12,6 +12,15 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import fs from 'fs/promises';
 import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Initialize Gemini AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
@@ -187,8 +196,11 @@ export class ASMStudioAI {
 // Export singleton instance
 export const aiEngine = new ASMStudioAI();
 
-// Initialize on module load
-if (require.main === module) {
+// Initialize when run directly (for testing)
+// Check if this module is the main entry point
+const isMainModule = import.meta.url === `file://${process.argv[1]}`;
+
+if (isMainModule) {
   aiEngine.initialize().then(() => {
     console.log('🤖 ASM-Studio AI Engine ready');
   }).catch((error) => {

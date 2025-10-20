@@ -39,12 +39,12 @@ services:
     container_name: asmstudio-backend
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "3001:3001"
     environment:
       NODE_ENV: production
       MONGODB_URI: mongodb://admin:changeme@mongodb:27017/asmstudio?authSource=admin
       REDIS_URL: redis://redis:6379
-      PORT: 3000
+      PORT: 3001
     env_file:
       - .env
     depends_on:

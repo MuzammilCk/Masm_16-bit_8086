@@ -2,6 +2,7 @@
   "name": "@asmstudio/ai-engine",
   "version": "1.0.0",
   "description": "AI-powered assembly language compiler, executor, and teaching assistant",
+  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
