@@ -2,14 +2,18 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Send, Sparkles } from "lucide-react";
+import { Send, Sparkles, ChevronRight } from "lucide-react";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
 }
 
-export function AIChat() {
+interface AIChatProps {
+  onCollapse?: () => void;
+}
+
+export function AIChat({ onCollapse }: AIChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -60,9 +64,22 @@ export function AIChat() {
   return (
     <div className="h-full flex flex-col bg-card">
       {/* Header */}
-      <div className="h-10 border-b border-border flex items-center px-4 gap-2">
-        <Sparkles className="h-4 w-4 text-primary" />
-        <h3 className="text-sm font-semibold">AI Assistant</h3>
+      <div className="h-10 border-b border-border flex items-center justify-between px-4">
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold">AI Assistant</h3>
+        </div>
+        {onCollapse && (
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={onCollapse}
+            className="h-6 w-6"
+            title="Collapse panel"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        )}
       </div>
 
       {/* Messages */}

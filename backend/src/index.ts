@@ -1,20 +1,21 @@
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Load environment variables BEFORE any other modules
+dotenv.config({ path: path.join(__dirname, '../.env') });
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
-import dotenv from 'dotenv';
-import path from 'path';
 import { connectDatabase } from './config/database';
 import projectRoutes from './routes/projects';
 import executeRoutes from './routes/execute';
 import aiRoutes from './routes/ai';
 
-// Load environment variables from backend/.env
-dotenv.config({ path: path.join(__dirname, '../.env') });
-
 // Log API key status (first 10 chars only for security)
-console.log('🔑 API Key loaded:', process.env.GEMINI_API_KEY ? `${process.env.GEMINI_API_KEY.substring(0, 10)}...` : '❌ NOT FOUND');
+console.log('🔑 OpenRouter API Key:', process.env.OPENROUTER_API_KEY ? `${process.env.OPENROUTER_API_KEY.substring(0, 10)}...` : '❌ NOT FOUND');
 
 const app = express();
 const PORT = process.env.PORT || 3001;

@@ -1,58 +1,13 @@
 import express from 'express';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getSystemPrompt } from '../utils/promptLoader';
 
 const router = express.Router();
 
-// Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+// OpenRouter configuration
+const OPENROUTER_SITE_URL = process.env.OPENROUTER_SITE_URL || 'http://localhost:3000';
+const OPENROUTER_SITE_NAME = process.env.OPENROUTER_SITE_NAME || 'ASM-Studio Pro';
+const OPENROUTER_MODEL = 'x-ai/grok-code-fast-1';
 
-// System prompt for code execution
-const EXECUTION_PROMPT = `You are an 8086 assembly language compiler and simulator. When given MASM code, you must:
-
-1. Parse and validate the syntax
-2. Simulate step-by-step execution
-3. Track register changes (AX, BX, CX, DX, SI, DI, BP, SP, CS, DS, SS, ES, IP)
-4. Track flag changes (CF, ZF, SF, OF, PF, AF)
-5. Track memory reads/writes
-6. Provide execution trace
-
-Format your response EXACTLY like this:
-
-✅ Code Compiled Successfully!
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-📊 EXECUTION SUMMARY
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Lines of code: [number]
-Instructions: [number]
-Execution time: [time]
-
-🔧 REGISTER STATE (After Execution)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-AX: [value]h ([decimal])
-BX: [value]h ([decimal])
-CX: [value]h ([decimal])
-DX: [value]h ([decimal])
-
-DS: [value]h
-CS: [value]h
-SS: [value]h
-
-🚩 FLAGS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-CF: [0/1]  ZF: [0/1]  SF: [0/1]  OF: [0/1]  PF: [0/1]  AF: [0/1]
-
-💾 MEMORY CHANGES
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[address]  [value] ([label])  ← [Read/Written]
-
-📝 EXECUTION TRACE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Step 1: [instruction] → [effect]
-Step 2: [instruction] → [effect]
-...
-
-✨ Program executed successfully!`;
 
 // Execute assembly code
 router.post('/', async (req, res) => {
@@ -63,78 +18,57 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Code is required' });
     }
 
+    console.log('[/api/execute] Received code:', code);
+
+    // Read API key inside the handler to ensure it's loaded
+    const apiKey = process.env.OPENROUTER_API_KEY;
+
     // Check if AI is configured
-    if (!process.env.GEMINI_API_KEY) {
-      // Fallback to mock data if no API key
-      const lines = code.split('\n').filter(line => line.trim() && !line.trim().startsWith(';'));
-    
-    const output = `✅ Code Compiled Successfully!
+    if (!apiKey) {
+      const errorOutput = `❌ AI Execution Failed
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📊 EXECUTION SUMMARY
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Lines of code: ${code.split('\n').length}
-Instructions: ${lines.length}
-Execution time: 0.002s
+Error: AI provider not configured.
 
-🔧 REGISTER STATE (After Execution)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-AX: 0050h (80)    ← Result of addition
-BX: 0000h (0)
-CX: 0000h (0)
-DX: 0000h (0)
-
-DS: 0700h         ← Data segment
-CS: 0800h         ← Code segment
-SS: 0900h         ← Stack segment
-
-🚩 FLAGS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-CF: 0  ZF: 0  SF: 0  OF: 0  PF: 0  AF: 0
-
-💾 MEMORY CHANGES
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-0700:0000  20h (OPR1)  ← Read
-0700:0001  30h (OPR2)  ← Read
-0700:0002  50h (RES)   ← Written (20h + 30h = 50h)
-
-📝 EXECUTION TRACE (First 5 steps)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Step 1: MOV AX, DATA     → AX = 0700h
-Step 2: MOV DS, AX       → DS = 0700h
-Step 3: MOV AL, OPR1     → AL = 20h
-Step 4: ADD AL, OPR2     → AL = 50h (20h + 30h)
-Step 5: MOV AH, 00H      → AH = 00h
-
-✨ Program executed successfully!
-
-⚠️  NOTE: This is simulated output. AI API key not configured.
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Please set the OPENROUTER_API_KEY in the backend/.env file and restart the server.
 `;
-
-      return res.json({
-        success: true,
-        output,
-        steps: [],
-        registers: {},
-        flags: {},
+      return res.status(500).json({ 
+        success: false, 
+        output: errorOutput, 
+        error: 'AI provider not configured.' 
       });
     }
 
     // Use AI to compile and execute the code
     try {
-      const model = genAI.getGenerativeModel({ 
-        model: 'gemini-2.0-flash-exp',
-        generationConfig: {
-          temperature: 0.3, // Lower temperature for more consistent output
-          maxOutputTokens: 2000,
-        }
+      const reload = req.query.reloadPrompts === '1';
+      const systemPrompt = await getSystemPrompt({ reload });
+      const userPrompt = `${systemPrompt}\n\nNow compile and execute this 8086 MASM code:\n\n\`\`\`asm\n${code}\n\`\`\`\n\nProvide the complete execution analysis based on the templates provided.`;
+
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'HTTP-Referer': OPENROUTER_SITE_URL,
+          'X-Title': OPENROUTER_SITE_NAME,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: OPENROUTER_MODEL,
+          messages: [
+            { role: 'user', content: userPrompt }
+          ],
+          temperature: 0.3,
+          max_tokens: 2000
+        })
       });
 
-      const prompt = `${EXECUTION_PROMPT}\n\nNow compile and execute this 8086 MASM code:\n\n\`\`\`asm\n${code}\n\`\`\`\n\nProvide the complete execution analysis.`;
+      if (!response.ok) {
+        throw new Error(`OpenRouter API error: ${response.statusText}`);
+      }
 
-      const result = await model.generateContent(prompt);
-      const aiOutput = result.response.text();
+      const data: any = await response.json();
+      const aiOutput = data.choices[0]?.message?.content || 'No execution output available';
 
       res.json({
         success: true,
@@ -147,28 +81,16 @@ Step 5: MOV AH, 00H      → AH = 00h
     } catch (aiError: any) {
       console.error('AI Execution error:', aiError);
       
-      // Fallback to mock data if AI fails
-      const lines = code.split('\n').filter(line => line.trim() && !line.trim().startsWith(';'));
-      
-      const fallbackOutput = `⚠️  AI Compilation Failed
+      const errorOutput = `❌ AI Execution Failed
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Error: ${aiError.message || 'Unknown AI error'}
 
-Showing simulated output instead:
-
-✅ Code Received
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Lines of code: ${code.split('\n').length}
-Instructions: ${lines.length}
-
-⚠️  Please check your GEMINI_API_KEY in backend/.env
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+This could be due to an invalid API key, network issues, or a problem with the AI provider.
 `;
-
-      res.json({
+      res.status(500).json({
         success: false,
-        output: fallbackOutput,
+        output: errorOutput,
         error: aiError.message,
       });
     }

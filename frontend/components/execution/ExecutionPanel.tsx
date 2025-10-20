@@ -1,15 +1,32 @@
 "use client";
 
 import { useExecutionStore } from "@/store/executionStore";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft } from "lucide-react";
 
-export function ExecutionPanel() {
+interface ExecutionPanelProps {
+  onCollapse?: () => void;
+}
+
+export function ExecutionPanel({ onCollapse }: ExecutionPanelProps) {
   const { output, steps, currentStep } = useExecutionStore();
 
   return (
     <div className="h-full flex flex-col bg-card">
       {/* Header */}
-      <div className="h-10 border-b border-border flex items-center px-4">
+      <div className="h-10 border-b border-border flex items-center justify-between px-4">
         <h3 className="text-sm font-semibold">Execution Output</h3>
+        {onCollapse && (
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={onCollapse}
+            className="h-6 w-6"
+            title="Collapse panel"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+        )}
       </div>
 
       {/* Content */}

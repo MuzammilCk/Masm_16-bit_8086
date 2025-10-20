@@ -30,6 +30,14 @@ export function CodeEditor() {
     // Configure custom theme
     configureMonacoTheme(monaco);
     
+    // Force set the theme immediately
+    monaco.editor.setTheme('asmstudio-dark');
+    
+    // Update editor options to ensure dark background
+    editor.updateOptions({
+      theme: 'asmstudio-dark'
+    });
+    
     // Track cursor position
     editor.onDidChangeCursorPosition((e) => {
       setCursorPosition({
@@ -48,6 +56,11 @@ export function CodeEditor() {
 
   return (
     <div className="h-full w-full bg-[#1c2128]">
+      {!mounted && (
+        <div className="h-full w-full bg-[#1c2128] flex items-center justify-center">
+          <div className="text-muted-foreground">Loading editor...</div>
+        </div>
+      )}
       {mounted && (
         <Editor
           height="100%"
@@ -57,6 +70,7 @@ export function CodeEditor() {
           onChange={handleEditorChange}
           onMount={handleEditorDidMount}
           theme="asmstudio-dark"
+          loading={<div className="h-full w-full bg-[#1c2128]" />}
           options={{
           fontSize: 14,
           fontFamily: "var(--font-jetbrains)",

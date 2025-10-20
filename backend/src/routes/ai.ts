@@ -1,10 +1,12 @@
 import express from 'express';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const router = express.Router();
 
-// Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+// OpenRouter configuration
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
+const OPENROUTER_SITE_URL = process.env.OPENROUTER_SITE_URL || 'http://localhost:3000';
+const OPENROUTER_SITE_NAME = process.env.OPENROUTER_SITE_NAME || 'ASM-Studio Pro';
+const OPENROUTER_MODEL = 'x-ai/grok-code-fast-1';
 
 // System prompt for ASM-Studio AI Assistant
 const SYSTEM_PROMPT = `You are an expert assembly language tutor for the ASM-Studio Pro IDE. You specialize in MASM (Microsoft Macro Assembler) for 8086 architecture.
@@ -32,58 +34,72 @@ When analyzing code:
 // Chat with AI
 router.post('/chat', async (req, res) => {
   try {
-    const { message, code, conversationHistory } = req.body;
+    const { message, code } = req.body;
 
     if (!message || typeof message !== 'string') {
       return res.status(400).json({ error: 'Message is required' });
     }
 
-    if (!process.env.GEMINI_API_KEY) {
+    if (!OPENROUTER_API_KEY) {
       return res.status(500).json({ 
         error: 'AI service not configured',
-        message: 'Please add GEMINI_API_KEY to environment variables'
+        message: 'Please add OPENROUTER_API_KEY to environment variables'
       });
     }
 
-    // Build context
-    let contextMessage = SYSTEM_PROMPT + '\n\n';
-    
-    if (code) {
-      contextMessage += `Current code in editor:\n\`\`\`asm\n${code}\n\`\`\`\n\n`;
-    }
-    
-    contextMessage += `Student question: ${message}`;
-
-    // Get AI model
-    const model = genAI.getGenerativeModel({ 
-      model: 'gemini-2.0-flash-exp',
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 1000,
+    // Build messages array
+    const messages = [
+      {
+        role: 'system',
+        content: SYSTEM_PROMPT
       }
+    ];
+
+    if (code) {
+      messages.push({
+        role: 'system',
+        content: `Current code in editor:\n\`\`\`asm\n${code}\n\`\`\``
+      });
+    }
+
+    messages.push({
+      role: 'user',
+      content: message
     });
 
-    // Generate response
-    const result = await model.generateContent(contextMessage);
-    const response = result.response;
-    const text = response.text();
+    // Call OpenRouter API
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'HTTP-Referer': OPENROUTER_SITE_URL,
+        'X-Title': OPENROUTER_SITE_NAME,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: OPENROUTER_MODEL,
+        messages: messages,
+        temperature: 0.7,
+        max_tokens: 1000
+      })
+    });
+
+    if (!response.ok) {
+      const errorData: any = await response.json();
+      throw new Error(`OpenRouter API error: ${errorData.error?.message || response.statusText}`);
+    }
+
+    const data: any = await response.json();
+    const aiMessage = data.choices[0]?.message?.content || 'No response from AI';
 
     res.json({
       success: true,
-      message: text,
+      message: aiMessage,
       timestamp: new Date().toISOString(),
     });
 
   } catch (error: any) {
     console.error('AI Chat error:', error);
-    
-    // Handle specific Gemini API errors
-    if (error.message?.includes('API_KEY')) {
-      return res.status(500).json({
-        error: 'Invalid API key',
-        message: 'Please check your Gemini API key configuration'
-      });
-    }
     
     res.status(500).json({
       error: 'Failed to get AI response',
@@ -101,26 +117,45 @@ router.post('/explain', async (req, res) => {
       return res.status(400).json({ error: 'Code is required' });
     }
 
-    if (!process.env.GEMINI_API_KEY) {
+    if (!OPENROUTER_API_KEY) {
       return res.status(500).json({ 
         error: 'AI service not configured' 
       });
     }
 
-    const model = genAI.getGenerativeModel({ 
-      model: 'gemini-2.0-flash-exp' 
-    });
-
-    let prompt = `${SYSTEM_PROMPT}\n\nExplain this 8086 assembly code:\n\`\`\`asm\n${code}\n\`\`\`\n\n`;
+    let userPrompt = `Explain this 8086 assembly code:\n\`\`\`asm\n${code}\n\`\`\`\n\n`;
     
     if (lineNumber) {
-      prompt += `Focus on line ${lineNumber}.\n\n`;
+      userPrompt += `Focus on line ${lineNumber}.\n\n`;
     }
     
-    prompt += 'Provide a clear, educational explanation.';
+    userPrompt += 'Provide a clear, educational explanation.';
 
-    const result = await model.generateContent(prompt);
-    const explanation = result.response.text();
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'HTTP-Referer': OPENROUTER_SITE_URL,
+        'X-Title': OPENROUTER_SITE_NAME,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: OPENROUTER_MODEL,
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user', content: userPrompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 1500
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`OpenRouter API error: ${response.statusText}`);
+    }
+
+    const data: any = await response.json();
+    const explanation = data.choices[0]?.message?.content || 'No explanation available';
 
     res.json({
       success: true,
@@ -145,18 +180,37 @@ router.post('/fix', async (req, res) => {
       return res.status(400).json({ error: 'Code and error message are required' });
     }
 
-    if (!process.env.GEMINI_API_KEY) {
+    if (!OPENROUTER_API_KEY) {
       return res.status(500).json({ error: 'AI service not configured' });
     }
 
-    const model = genAI.getGenerativeModel({ 
-      model: 'gemini-2.0-flash-exp' 
+    const userPrompt = `The student has this error:\n${errorMessage}\n\nIn this code:\n\`\`\`asm\n${code}\n\`\`\`\n\nProvide 2-3 specific fix options with code examples. Be concise and actionable.`;
+
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'HTTP-Referer': OPENROUTER_SITE_URL,
+        'X-Title': OPENROUTER_SITE_NAME,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: OPENROUTER_MODEL,
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user', content: userPrompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 1500
+      })
     });
 
-    const prompt = `${SYSTEM_PROMPT}\n\nThe student has this error:\n${errorMessage}\n\nIn this code:\n\`\`\`asm\n${code}\n\`\`\`\n\nProvide 2-3 specific fix options with code examples. Be concise and actionable.`;
+    if (!response.ok) {
+      throw new Error(`OpenRouter API error: ${response.statusText}`);
+    }
 
-    const result = await model.generateContent(prompt);
-    const suggestions = result.response.text();
+    const data: any = await response.json();
+    const suggestions = data.choices[0]?.message?.content || 'No suggestions available';
 
     res.json({
       success: true,
