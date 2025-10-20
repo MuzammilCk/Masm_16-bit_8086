@@ -47,16 +47,17 @@ export function CodeEditor() {
   }
 
   return (
-    <div className="h-full w-full">
+    <div className="h-full w-full bg-[#1c2128]">
       {mounted && (
         <Editor
           height="100%"
           defaultLanguage="masm"
+          defaultValue=""
           value={code}
           onChange={handleEditorChange}
           onMount={handleEditorDidMount}
-          theme={theme === "dark" ? "asmstudio-dark" : "asmstudio-light"}
-        options={{
+          theme="asmstudio-dark"
+          options={{
           fontSize: 14,
           fontFamily: "var(--font-jetbrains)",
           fontLigatures: true,

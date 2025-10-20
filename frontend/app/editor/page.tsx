@@ -10,51 +10,29 @@ import { ResizablePanel } from "@/components/ui/resizable-panel";
 import { useEditorStore } from "@/store/editorStore";
 import { useExecutionStore } from "@/store/executionStore";
 
-const DEFAULT_CODE = `ASSUME CS:CODE, DS:DATA
-
-DATA SEGMENT
-    OPR1 DB 20H
-    OPR2 DB 30H
-    RES DW ?
-DATA ENDS
-
-CODE SEGMENT
-START:
-    MOV AX, DATA
-    MOV DS, AX
-    
-    MOV AL, OPR1
-    ADD AL, OPR2
-    MOV AH, 00H
-    MOV RES, AX
-    
-    MOV AH, 4CH
-    INT 21H
-CODE ENDS
-END START`;
-
 export default function EditorPage() {
   const { code, setCode } = useEditorStore();
   const { isExecuting } = useExecutionStore();
   const [showAI, setShowAI] = useState(true);
-
-  // Initialize with default code if empty
-  if (!code) {
-    setCode(DEFAULT_CODE);
-  }
+  const [showOutput, setShowOutput] = useState(true);
 
   return (
     <div className="h-screen flex flex-col bg-background">
       {/* Toolbar */}
-      <Toolbar onToggleAI={() => setShowAI(!showAI)} />
+      <Toolbar 
+        onToggleAI={() => setShowAI(!showAI)} 
+        onToggleOutput={() => setShowOutput(!showOutput)}
+        showAI={showAI}
+        showOutput={showOutput}
+      />
       
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left: Code Editor */}
         <ResizablePanel
-          defaultSize={showAI ? 40 : 60}
+          defaultSize={!showOutput && !showAI ? 100 : !showOutput ? 70 : !showAI ? 60 : 40}
           minSize={30}
-          maxSize={70}
+          maxSize={100}
         >
           <div className="h-full flex flex-col bg-background">
             <div className="h-10 border-b border-border flex items-center px-4">
@@ -67,13 +45,15 @@ export default function EditorPage() {
         </ResizablePanel>
         
         {/* Middle: Execution Output */}
-        <ResizablePanel
-          defaultSize={showAI ? 35 : 40}
-          minSize={20}
-          maxSize={60}
-        >
-          <ExecutionPanel />
-        </ResizablePanel>
+        {showOutput && (
+          <ResizablePanel
+            defaultSize={showAI ? 35 : 40}
+            minSize={20}
+            maxSize={60}
+          >
+            <ExecutionPanel />
+          </ResizablePanel>
+        )}
         
         {/* Right: AI Chat */}
         {showAI && (

@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Play, Square, Moon, Sun, Settings } from "lucide-react";
+import { Play, Square, Moon, Sun, Settings, PanelRightClose, PanelRightOpen, PanelBottomClose, PanelBottomOpen } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useExecutionStore } from "@/store/executionStore";
 import { useEditorStore } from "@/store/editorStore";
@@ -9,9 +9,12 @@ import { useEffect, useState } from "react";
 
 interface ToolbarProps {
   onToggleAI: () => void;
+  onToggleOutput: () => void;
+  showAI: boolean;
+  showOutput: boolean;
 }
 
-export function Toolbar({ onToggleAI }: ToolbarProps) {
+export function Toolbar({ onToggleAI, onToggleOutput, showAI, showOutput }: ToolbarProps) {
   const { theme, setTheme } = useTheme();
   const { isExecuting, setIsExecuting, setOutput } = useExecutionStore();
   const { code } = useEditorStore();
@@ -94,11 +97,41 @@ export function Toolbar({ onToggleAI }: ToolbarProps) {
 
       {/* Right: Settings */}
       <div className="flex items-center gap-2">
+        {/* Toggle Output Panel */}
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={onToggleOutput}
+          title={showOutput ? "Hide Output Panel" : "Show Output Panel"}
+        >
+          {showOutput ? (
+            <PanelBottomClose className="h-4 w-4" />
+          ) : (
+            <PanelBottomOpen className="h-4 w-4" />
+          )}
+        </Button>
+
+        {/* Toggle AI Panel */}
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={onToggleAI}
+          title={showAI ? "Hide AI Assistant" : "Show AI Assistant"}
+        >
+          {showAI ? (
+            <PanelRightClose className="h-4 w-4" />
+          ) : (
+            <PanelRightOpen className="h-4 w-4" />
+          )}
+        </Button>
+
+        {/* Theme Toggle */}
         <Button
           size="icon"
           variant="ghost"
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           disabled={!mounted}
+          title={theme === "dark" ? "Light Mode" : "Dark Mode"}
         >
           {mounted ? (
             theme === "dark" ? (
@@ -111,7 +144,7 @@ export function Toolbar({ onToggleAI }: ToolbarProps) {
           )}
         </Button>
 
-        <Button size="icon" variant="ghost">
+        <Button size="icon" variant="ghost" title="Settings">
           <Settings className="h-4 w-4" />
         </Button>
       </div>

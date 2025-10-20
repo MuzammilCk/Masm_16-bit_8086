@@ -21,7 +21,8 @@ export function configureMonacoTheme(monaco: Monaco) {
       { token: "delimiter.bracket", foreground: "c9d1d9" },
     ],
     colors: {
-      "editor.background": "#161b22",
+      "editor.background": "#1c2128",
+      "editorGutter.background": "#1c2128",
       "editor.foreground": "#c9d1d9",
       "editor.lineHighlightBackground": "#21262d",
       "editor.selectionBackground": "#3b5360",
