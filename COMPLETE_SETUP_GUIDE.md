@@ -70,16 +70,14 @@ Open PowerShell in the project directory and run:
 ```powershell
 cd d:\projects\MasM8086
 
-# Run the automated setup script
-.\setup-and-run.ps1 -Dev
+# Run the development startup script
+.\start-dev.ps1
 ```
 
 This script will:
 - ✅ Check if Docker is running
-- ✅ Create `.env` files from examples
-- ✅ Prompt you to add your Gemini API key
-- ✅ Install all dependencies
 - ✅ Start MongoDB and Redis in Docker
+- ✅ Verify containers are running
 
 ### Step 4: Add Your API Key
 
@@ -641,6 +639,82 @@ docker-compose logs -f
 3. **Check firewall:**
    - Ensure port 27017 is not blocked
    - Add Docker to firewall exceptions
+
+### React Hydration Mismatch Error
+
+**Problem:** Console shows hydration error with `bis_skin_checked` or `bis_register` attributes
+
+**Error Message:**
+```
+A tree hydrated but some attributes of the server rendered HTML didn't match the client properties
+```
+
+**Cause:** Browser extensions (like **Bitwarden**, Grammarly, LastPass, etc.) are modifying the HTML by adding attributes to DOM elements before React loads.
+
+**Why This Happens:**
+- Bitwarden adds `bis_skin_checked="1"` to every `<div>` element
+- This happens during server-side rendering vs client-side hydration mismatch
+- The extension injects attributes that weren't in the server-rendered HTML
+
+**Solutions (Choose One):**
+
+1. **✅ Use Incognito/Private Mode** (BEST for development):
+   - Press `Ctrl+Shift+N` (Chrome/Edge) or `Ctrl+Shift+P` (Firefox)
+   - Extensions are disabled by default in incognito
+   - Open http://localhost:3000 in incognito window
+   - **This is the recommended way to develop**
+
+2. **Disable Specific Extensions:**
+   - Chrome: Go to `chrome://extensions/`
+   - Edge: Go to `edge://extensions/`
+   - Disable these extensions:
+     - ✗ Bitwarden (adds `bis_skin_checked`)
+     - ✗ Grammarly (modifies text inputs)
+     - ✗ LastPass (modifies forms)
+     - ✗ Any extension that modifies the DOM
+
+3. **Ignore the Warning (Already Configured):**
+   - The code has been updated with `suppressHydrationWarning`
+   - The warning won't affect functionality
+   - The app will work normally despite the console error
+   - Just use incognito mode to avoid seeing it
+
+**Important Notes:**
+- ⚠️ This error is **cosmetic only** - your app still works fine
+- ⚠️ It only appears in development mode
+- ⚠️ It won't appear in production builds
+- ✅ The editor and all features work normally despite this warning
+
+### Can't Type in Code Editor
+
+**Problem:** Monaco editor is visible but you can't type or enter code
+
+**Solutions:**
+
+1. **Wait for editor to fully load:**
+   - The Monaco editor takes a few seconds to initialize
+   - Look for the cursor blinking in the editor
+
+2. **Click inside the editor:**
+   - Click directly in the code area
+   - The editor should gain focus
+
+3. **Check browser console for errors:**
+   - Press F12 to open DevTools
+   - Look for JavaScript errors
+   - If you see hydration errors, follow the solution above
+
+4. **Restart frontend:**
+   ```powershell
+   # Stop frontend (Ctrl+C)
+   cd frontend
+   npm run dev
+   ```
+
+5. **Clear browser cache:**
+   - Press Ctrl+Shift+Delete
+   - Clear cached images and files
+   - Reload the page
 
 ### Dependencies Installation Fails
 

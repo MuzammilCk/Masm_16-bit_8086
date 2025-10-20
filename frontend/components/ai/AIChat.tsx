@@ -22,15 +22,39 @@ export function AIChat() {
     setInput("");
     setIsLoading(true);
 
-    // TODO: Implement AI API call
-    setTimeout(() => {
+    try {
+      const response = await fetch("http://localhost:3001/api/ai/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: input,
+          code: "", // TODO: Get current code from editor store
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
       const aiMessage: Message = {
         role: "assistant",
-        content: "AI response will appear here once integrated with Gemini API.",
+        content: data.message || "I'm here to help with assembly language!",
       };
+      
       setMessages((prev) => [...prev, aiMessage]);
+    } catch (error) {
+      const errorMessage: Message = {
+        role: "assistant",
+        content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : "Unknown error"}. Please make sure the backend is running.`,
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (

@@ -50,20 +50,25 @@ export default function EditorPage() {
       
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left: Editor */}
+        {/* Left: Code Editor */}
         <ResizablePanel
-          defaultSize={showAI ? 50 : 70}
+          defaultSize={showAI ? 40 : 60}
           minSize={30}
-          maxSize={80}
+          maxSize={70}
         >
-          <div className="h-full flex flex-col">
-            <CodeEditor />
+          <div className="h-full flex flex-col bg-background">
+            <div className="h-10 border-b border-border flex items-center px-4">
+              <h3 className="text-sm font-semibold">Code Editor</h3>
+            </div>
+            <div className="flex-1">
+              <CodeEditor />
+            </div>
           </div>
         </ResizablePanel>
         
         {/* Middle: Execution Output */}
         <ResizablePanel
-          defaultSize={showAI ? 30 : 30}
+          defaultSize={showAI ? 35 : 40}
           minSize={20}
           maxSize={60}
         >
@@ -73,8 +78,8 @@ export default function EditorPage() {
         {/* Right: AI Chat */}
         {showAI && (
           <ResizablePanel
-            defaultSize={20}
-            minSize={15}
+            defaultSize={25}
+            minSize={20}
             maxSize={40}
           >
             <AIChat />

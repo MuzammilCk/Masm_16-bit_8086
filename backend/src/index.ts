@@ -6,6 +6,8 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import { connectDatabase } from './config/database';
 import projectRoutes from './routes/projects';
+import executeRoutes from './routes/execute';
+import aiRoutes from './routes/ai';
 
 // Load environment variables
 dotenv.config();
@@ -43,6 +45,8 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api/projects', projectRoutes);
+app.use('/api/execute', executeRoutes);
+app.use('/api/ai', aiRoutes);
 
 // 404 handler
 app.use((req, res) => {

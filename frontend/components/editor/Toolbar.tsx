@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Play, Square, Moon, Sun, Settings } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useExecutionStore } from "@/store/executionStore";
+import { useEditorStore } from "@/store/editorStore";
 import { useEffect, useState } from "react";
 
 interface ToolbarProps {
@@ -12,13 +13,54 @@ interface ToolbarProps {
 
 export function Toolbar({ onToggleAI }: ToolbarProps) {
   const { theme, setTheme } = useTheme();
-  const { isExecuting } = useExecutionStore();
+  const { isExecuting, setIsExecuting, setOutput } = useExecutionStore();
+  const { code } = useEditorStore();
   const [mounted, setMounted] = useState(false);
 
   // Prevent hydration mismatch by only rendering theme-dependent UI after mount
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const handleRun = async () => {
+    if (!code.trim()) {
+      setOutput("Error: No code to execute. Please write some assembly code first.");
+      return;
+    }
+
+    setIsExecuting(true);
+    setOutput("Executing code...\n");
+
+    try {
+      // TODO: Replace with actual API call to backend
+      const response = await fetch("http://localhost:3001/api/execute", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ code }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setOutput(data.output || "Execution completed successfully!");
+    } catch (error) {
+      setOutput(
+        `Error: ${error instanceof Error ? error.message : "Failed to execute code"}\n\n` +
+        `Make sure the backend is running on http://localhost:3001`
+      );
+    } finally {
+      setIsExecuting(false);
+    }
+  };
+
+  const handleStop = () => {
+    setIsExecuting(false);
+    setOutput("Execution stopped by user.");
+  };
 
   return (
     <div className="h-12 border-b border-border bg-background flex items-center justify-between px-4">
@@ -31,6 +73,7 @@ export function Toolbar({ onToggleAI }: ToolbarProps) {
       <div className="flex items-center gap-2">
         <Button
           size="sm"
+          onClick={handleRun}
           disabled={isExecuting}
           className="button-hover"
         >
@@ -41,6 +84,7 @@ export function Toolbar({ onToggleAI }: ToolbarProps) {
         <Button
           size="sm"
           variant="outline"
+          onClick={handleStop}
           disabled={!isExecuting}
         >
           <Square className="h-4 w-4 mr-2" />
