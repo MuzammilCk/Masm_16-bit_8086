@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Send, Sparkles, ChevronRight } from "lucide-react";
+import { AIMessageRenderer } from "./AIMessageRenderer";
 
 interface Message {
   role: "user" | "assistant";
@@ -17,6 +18,12 @@ export function AIChat({ onCollapse }: AIChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -98,13 +105,17 @@ export function AIChat({ onCollapse }: AIChatProps) {
               }`}
             >
               <div
-                className={`max-w-[80%] rounded-lg p-3 ${
+                className={`${
                   message.role === "user"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary"
+                    ? "max-w-[80%] rounded-lg p-3 bg-primary text-primary-foreground"
+                    : "w-full rounded-lg p-4 bg-secondary border border-border"
                 }`}
               >
-                <p className="text-sm">{message.content}</p>
+                {message.role === "user" ? (
+                  <p className="text-sm">{message.content}</p>
+                ) : (
+                  <AIMessageRenderer content={message.content} />
+                )}
               </div>
             </div>
           ))
@@ -121,6 +132,8 @@ export function AIChat({ onCollapse }: AIChatProps) {
             </div>
           </div>
         )}
+
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Input */}

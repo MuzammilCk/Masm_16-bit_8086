@@ -19,11 +19,15 @@ export async function getSystemPrompt(options?: { reload?: boolean }): Promise<s
   }
 
   try {
-    // Go up from src/utils to the project root, then to prompts/
-    const promptsDir = path.join(__dirname, '..', '..', '..', 'prompts');
+    // Use process.cwd() to get the backend directory, then go to project root
+    // When running with tsx, __dirname can be unreliable
+    const projectRoot = path.join(process.cwd(), '..');
+    const promptsDir = path.join(projectRoot, 'prompts');
 
     const corePromptPath = path.join(promptsDir, 'CORE_SYSTEM_PROMPT.md');
     const interfaceTemplatesPath = path.join(promptsDir, 'INTERFACE_TEMPLATES.md');
+    
+    console.log(`📂 Loading prompts from: ${promptsDir}`);
 
     const [corePrompt, interfaceTemplates] = await Promise.all([
       fs.readFile(corePromptPath, 'utf-8'),

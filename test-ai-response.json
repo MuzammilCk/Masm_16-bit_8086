@@ -1,0 +1,286 @@
+{
+  "file": {
+    "name": "factorial.asm",
+    "content": "ASSUME CS:CODE, DS:DATA\n\nDATA SEGMENT\n    NUM DB 5\n    RESULT DW ?\nDATA ENDS\n\nCODE SEGMENT\n    START:\n        MOV AX, DATA\n        MOV DS, AX\n        \n        MOV AL, NUM\n        MOV AH, 0\n        MOV CX, 1\n        \n    FACTORIAL:\n        CMP AX, 1\n        JLE DONE\n        MUL CX\n        MOV CX, AX\n        DEC AL\n        JMP FACTORIAL\n        \n    DONE:\n        MOV RESULT, CX\n        MOV AH, 4CH\n        INT 21H\nCODE ENDS\n\nEND START",
+    "lineCount": 29,
+    "language": "masm"
+  },
+  "problems": {
+    "count": 0,
+    "errors": [],
+    "warnings": []
+  },
+  "build": {
+    "status": "success",
+    "time": "0.048s",
+    "outputFile": "factorial.exe",
+    "size": "287 bytes",
+    "symbols": [
+      {
+        "segment": "DATA",
+        "name": "NUM",
+        "type": "BYTE",
+        "offset": "0000h",
+        "value": "05h"
+      },
+      {
+        "segment": "DATA",
+        "name": "RESULT",
+        "type": "WORD",
+        "offset": "0001h",
+        "value": "????"
+      }
+    ]
+  },
+  "execution": {
+    "status": "completed",
+    "totalSteps": 12,
+    "currentStep": 0,
+    "steps": [
+      {
+        "stepNumber": 1,
+        "line": 10,
+        "instruction": "MOV AX, DATA",
+        "description": "Load DATA segment address into AX",
+        "registerChanges": [
+          {
+            "register": "AX",
+            "before": "0000h",
+            "after": "0600h",
+            "highlight": true
+          }
+        ],
+        "flagChanges": [],
+        "memoryChanges": []
+      },
+      {
+        "stepNumber": 2,
+        "line": 11,
+        "instruction": "MOV DS, AX",
+        "description": "Initialize DS register",
+        "registerChanges": [
+          {
+            "register": "DS",
+            "before": "0000h",
+            "after": "0600h",
+            "highlight": true
+          }
+        ],
+        "flagChanges": [],
+        "memoryChanges": []
+      },
+      {
+        "stepNumber": 3,
+        "line": 13,
+        "instruction": "MOV AL, NUM",
+        "description": "Load NUM value (5) into AL",
+        "registerChanges": [
+          {
+            "register": "AL",
+            "before": "00h",
+            "after": "05h",
+            "highlight": true
+          }
+        ],
+        "flagChanges": [],
+        "memoryChanges": []
+      },
+      {
+        "stepNumber": 4,
+        "line": 14,
+        "instruction": "MOV AH, 0",
+        "description": "Clear AH register",
+        "registerChanges": [
+          {
+            "register": "AH",
+            "before": "06h",
+            "after": "00h",
+            "highlight": true
+          }
+        ],
+        "flagChanges": [],
+        "memoryChanges": []
+      },
+      {
+        "stepNumber": 5,
+        "line": 15,
+        "instruction": "MOV CX, 1",
+        "description": "Initialize accumulator to 1",
+        "registerChanges": [
+          {
+            "register": "CX",
+            "before": "0000h",
+            "after": "0001h",
+            "highlight": true
+          }
+        ],
+        "flagChanges": [],
+        "memoryChanges": []
+      },
+      {
+        "stepNumber": 6,
+        "line": 18,
+        "instruction": "CMP AX, 1",
+        "description": "Compare AX with 1",
+        "registerChanges": [],
+        "flagChanges": [
+          {
+            "flag": "ZF",
+            "before": 0,
+            "after": 0
+          }
+        ],
+        "memoryChanges": []
+      },
+      {
+        "stepNumber": 7,
+        "line": 20,
+        "instruction": "MUL CX",
+        "description": "Multiply AX by CX (5 * 1 = 5)",
+        "registerChanges": [
+          {
+            "register": "AX",
+            "before": "0005h",
+            "after": "0005h",
+            "highlight": false
+          },
+          {
+            "register": "DX",
+            "before": "0000h",
+            "after": "0000h",
+            "highlight": false
+          }
+        ],
+        "flagChanges": [],
+        "memoryChanges": []
+      },
+      {
+        "stepNumber": 8,
+        "line": 21,
+        "instruction": "MOV CX, AX",
+        "description": "Store result in CX",
+        "registerChanges": [
+          {
+            "register": "CX",
+            "before": "0001h",
+            "after": "0005h",
+            "highlight": true
+          }
+        ],
+        "flagChanges": [],
+        "memoryChanges": []
+      },
+      {
+        "stepNumber": 9,
+        "line": 22,
+        "instruction": "DEC AL",
+        "description": "Decrement counter (5 → 4)",
+        "registerChanges": [
+          {
+            "register": "AL",
+            "before": "05h",
+            "after": "04h",
+            "highlight": true
+          }
+        ],
+        "flagChanges": [],
+        "memoryChanges": []
+      },
+      {
+        "stepNumber": 10,
+        "line": 26,
+        "instruction": "MOV RESULT, CX",
+        "description": "Store factorial result to memory",
+        "registerChanges": [],
+        "flagChanges": [],
+        "memoryChanges": [
+          {
+            "address": "DS:0001h",
+            "before": "00 00",
+            "after": "78 00",
+            "label": "RESULT"
+          }
+        ]
+      },
+      {
+        "stepNumber": 11,
+        "line": 27,
+        "instruction": "MOV AH, 4CH",
+        "description": "Prepare for program termination",
+        "registerChanges": [
+          {
+            "register": "AH",
+            "before": "00h",
+            "after": "4Ch",
+            "highlight": true
+          }
+        ],
+        "flagChanges": [],
+        "memoryChanges": []
+      },
+      {
+        "stepNumber": 12,
+        "line": 28,
+        "instruction": "INT 21H",
+        "description": "Terminate program",
+        "registerChanges": [],
+        "flagChanges": [],
+        "memoryChanges": []
+      }
+    ],
+    "finalState": {
+      "registers": {
+        "AX": "0078h",
+        "BX": "0000h",
+        "CX": "0078h",
+        "DX": "0000h",
+        "SI": "0000h",
+        "DI": "0000h",
+        "BP": "0000h",
+        "SP": "FFFEh"
+      },
+      "flags": {
+        "CF": 0,
+        "ZF": 0,
+        "SF": 0,
+        "OF": 0,
+        "PF": 1,
+        "AF": 0
+      },
+      "memory": [
+        {
+          "address": "DS:0000h",
+          "value": "05",
+          "label": "NUM"
+        },
+        {
+          "address": "DS:0001h",
+          "value": "78 00",
+          "label": "RESULT"
+        }
+      ],
+      "result": {
+        "description": "5! = 120 (0x78)",
+        "value": "0078h"
+      }
+    },
+    "performance": {
+      "instructions": 12,
+      "cycles": 38,
+      "time": "3.8μs",
+      "efficiency": 92
+    }
+  },
+  "aiSuggestions": [
+    {
+      "type": "optimization",
+      "message": "Loop could be optimized using LOOP instruction",
+      "line": 23
+    },
+    {
+      "type": "info",
+      "message": "Great use of CX as accumulator!",
+      "line": 15
+    }
+  ]
+}
