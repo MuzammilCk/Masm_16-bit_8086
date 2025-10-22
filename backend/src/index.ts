@@ -12,10 +12,11 @@ import rateLimit from 'express-rate-limit';
 import { connectDatabase } from './config/database';
 import projectRoutes from './routes/projects';
 import executeRoutes from './routes/execute';
+import executeStreamRoutes from './routes/execute-stream';
 import aiRoutes from './routes/ai';
 
 // Log API key status (first 10 chars only for security)
-console.log('🔑 OpenRouter API Key:', process.env.OPENROUTER_API_KEY ? `${process.env.OPENROUTER_API_KEY.substring(0, 10)}...` : '❌ NOT FOUND');
+console.log('🔑 Gemini API Key:', process.env.GEMINI_API_KEY ? `${process.env.GEMINI_API_KEY.substring(0, 10)}...` : '❌ NOT FOUND');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -51,6 +52,7 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api/projects', projectRoutes);
 app.use('/api/execute', executeRoutes);
+app.use('/api/execute', executeStreamRoutes);
 app.use('/api/ai', aiRoutes);
 
 // 404 handler

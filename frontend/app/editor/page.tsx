@@ -15,7 +15,7 @@ import { useExecutionStore } from "@/store/executionStore";
 export default function EditorPage() {
   const { code, setCode } = useEditorStore();
   const { isExecuting } = useExecutionStore();
-  const [showAI, setShowAI] = useState(true);
+  const [showAI, setShowAI] = useState(false);
   const [showOutput, setShowOutput] = useState(true);
   const [showEditor, setShowEditor] = useState(true);
 
@@ -34,7 +34,7 @@ export default function EditorPage() {
         {/* Left: Code Editor */}
         {showEditor && (
           <ResizablePanel
-            defaultSize={!showOutput && !showAI ? 100 : !showOutput ? 70 : !showAI ? 60 : 40}
+            defaultSize={!showOutput && !showAI ? 100 : !showOutput ? 70 : !showAI ? 50 : 40}
             minSize={30}
             maxSize={100}
           >
@@ -64,7 +64,7 @@ export default function EditorPage() {
             defaultSize={
               !showEditor && !showAI ? 100 :
               !showEditor ? 70 :
-              !showAI ? 60 :
+              !showAI ? 50 :
               35
             }
             minSize={20}
