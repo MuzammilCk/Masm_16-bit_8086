@@ -7,7 +7,7 @@ const router = express.Router();
 // Helper function to format JSON output as readable text
 function formatExecutionOutput(data: any): string {
   if (data.error) {
-    return `❌ BUILD FAILED\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nError: ${data.error}\n\n${data.rawOutput || ''}`;
+    return `BUILD FAILED\n========================================================\n\nError: ${data.error}\n\n${data.rawOutput || ''}`;
   }
 
   let output = '';
@@ -41,38 +41,35 @@ function formatExecutionOutput(data: any): string {
 
   // Compilation result
   if (hasErrors) {
-    output += '❌ BUILD FAILED.\n\n';
-    output += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+    output += 'BUILD FAILED.\n\n';
+    output += '========================================================\n';
     output += 'ERRORS FOUND:\n';
-    output += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n';
+    output += '========================================================\n\n';
     
     data.compilation.errors.forEach((err: any, idx: number) => {
       output += `Error ${idx + 1}: Line ${err.line}, Column ${err.column}\n`;
       output += `└─ ${err.message}\n\n`;
       
       if (err.explanation) {
-        output += `📖 Why this happened:\n`;
-        output += `   ${err.explanation}\n\n`;
+        output += `WHY: ${err.explanation}\n\n`;
       }
       
       if (err.suggestion) {
-        output += `💡 HOW TO FIX:\n`;
-        output += `   ${err.suggestion}\n\n`;
+        output += `FIX: ${err.suggestion}\n\n`;
         
         // Add example if suggestion contains code
         if (err.example) {
-          output += `📝 Example:\n`;
-          output += `   ${err.example}\n\n`;
+          output += `EXAMPLE: ${err.example}\n\n`;
         }
       }
       
-      output += '─'.repeat(50) + '\n';
+      output += '='.repeat(50) + '\n';
     });
     
-    output += '\n❌ BUILD FAILED. Fix the errors above and click Run again.\n';
+    output += '\nBUILD FAILED. Fix the errors above and click Run again.\n';
     return output;
   } else {
-    output += '✅ BUILD SUCCEEDED.\n\n';
+    output += 'BUILD SUCCEEDED.\n\n';
   }
 
   // ============ EXECUTION PROCESS ============
@@ -189,6 +186,83 @@ function formatExecutionOutput(data: any): string {
   return output;
 }
 
+// Validate MASM code structure
+function validateMASMCode(code: string): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
+  const lines = code.trim().split('\n').map(l => l.trim()).filter(l => l && !l.startsWith(';'));
+  
+  if (lines.length === 0) {
+    errors.push('ERROR: Empty code - No assembly instructions found');
+    return { valid: false, errors };
+  }
+  
+  // Check for basic MASM structure
+  const codeUpper = code.toUpperCase();
+  const hasDataSegment = codeUpper.includes('DATA SEGMENT');
+  const hasCodeSegment = codeUpper.includes('CODE SEGMENT');
+  const hasStart = codeUpper.includes('START:');
+  const hasEnd = codeUpper.includes('END ');
+  const hasAssume = codeUpper.includes('ASSUME');
+  
+  // Must have CODE SEGMENT
+  if (!hasCodeSegment) {
+    errors.push('ERROR: Missing CODE SEGMENT - Every MASM program must have a CODE SEGMENT definition');
+  }
+  
+  // Must have START label
+  if (!hasStart) {
+    errors.push('ERROR: Missing START label - Program entry point "START:" not found');
+  }
+  
+  // Must have END directive
+  if (!hasEnd) {
+    errors.push('ERROR: Missing END directive - Program must end with "END START" or "END <label>"');
+  }
+  
+  // Must have ASSUME directive
+  if (!hasAssume) {
+    errors.push('ERROR: Missing ASSUME directive - Must specify segment registers (e.g., ASSUME CS:CODE, DS:DATA)');
+  }
+  
+  // If uses DATA, must have DATA SEGMENT and ENDS
+  if (codeUpper.includes('MOV DS') || codeUpper.includes('MOV AX, DATA')) {
+    if (!hasDataSegment) {
+      errors.push('ERROR: Missing DATA SEGMENT - Code references data segment but DATA SEGMENT is not defined');
+    }
+    if (!codeUpper.includes('DATA ENDS')) {
+      errors.push('ERROR: Missing DATA ENDS - DATA SEGMENT must be closed with "DATA ENDS"');
+    }
+  }
+  
+  // Must have CODE ENDS
+  if (hasCodeSegment && !codeUpper.includes('CODE ENDS')) {
+    errors.push('ERROR: Missing CODE ENDS - CODE SEGMENT must be closed with "CODE ENDS"');
+  }
+  
+  // Check for balanced SEGMENT/ENDS
+  const segmentCount = (codeUpper.match(/\bSEGMENT\b/g) || []).length;
+  const endsCount = (codeUpper.match(/\bENDS\b/g) || []).length;
+  if (segmentCount !== endsCount) {
+    errors.push(`ERROR: Unbalanced segments - Found ${segmentCount} SEGMENT declaration(s) but ${endsCount} ENDS statement(s)`);
+  }
+  
+  // Check for common syntax errors
+  if (code.includes(',,')) {
+    errors.push('ERROR: Syntax error - Double comma detected, check your operands');
+  }
+  
+  // Check for instructions without operands where needed
+  const instructionsNeedingOperands = ['MOV', 'ADD', 'SUB', 'MUL', 'DIV', 'CMP', 'AND', 'OR', 'XOR'];
+  for (const inst of instructionsNeedingOperands) {
+    const regex = new RegExp(`\\b${inst}\\s*$`, 'im');
+    if (regex.test(code)) {
+      errors.push(`ERROR: Incomplete instruction - ${inst} requires operands`);
+    }
+  }
+  
+  return { valid: errors.length === 0, errors };
+}
+
 // Execute assembly code
 router.post('/', async (req, res) => {
   try {
@@ -229,10 +303,73 @@ router.post('/', async (req, res) => {
       // Don't fail execution if session tracking fails
     }
 
+    // Validate code structure before execution
+    const validation = validateMASMCode(code);
+    if (!validation.valid) {
+      const errorOutput = `Code Validation Failed
+========================================================
+
+${validation.errors.join('\n\n')}
+
+Common MASM Program Structure:
+========================================================
+
+ASSUME CS:CODE, DS:DATA
+
+DATA SEGMENT
+    ; Your variables here
+    NUM1 DB 10H
+DATA ENDS
+
+CODE SEGMENT
+START:
+    ; Initialize data segment
+    MOV AX, DATA
+    MOV DS, AX
+    
+    ; Your code here
+    MOV AL, NUM1
+    
+    ; Exit
+    MOV AH, 4CH
+    INT 21H
+CODE ENDS
+
+END START
+
+========================================================
+
+Required Elements:
+1. ASSUME directive - Defines segment registers
+2. DATA SEGMENT...DATA ENDS - For variables
+3. CODE SEGMENT...CODE ENDS - For instructions
+4. START: label - Program entry point
+5. END START - Program termination
+`;
+      
+      // Track validation error in session
+      try {
+        const session = await Session.findOne({ sessionId: sid });
+        if (session) {
+          session.errorMessages.push('Code validation failed: ' + validation.errors[0]);
+          await session.save();
+        }
+      } catch (e) {
+        console.error('Error tracking failed:', e);
+      }
+      
+      return res.status(400).json({
+        success: false,
+        output: errorOutput,
+        error: 'Code validation failed',
+        validationErrors: validation.errors
+      });
+    }
+    
     // Check if user provided API key
     if (!apiKey) {
-      const errorOutput = `❌ AI Execution Failed
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      const errorOutput = `AI Execution Failed
+========================================================
 
 Error: No Gemini API key provided.
 
@@ -333,14 +470,14 @@ IMPORTANT:
 
         // Check for API key errors specifically
         if (response.status === 400 && (errorText.includes('API_KEY_INVALID') || errorText.includes('API key not valid'))) {
-          const errorOutput = `❌ Invalid API Key
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          const errorOutput = `Invalid API Key
+========================================================
 
 Your Gemini API key is invalid or has been revoked.
 
 Error: ${errorJson.error?.message || 'API key not valid'}
 
-💡 How to fix:
+How to fix:
 1. Get a new API key from: https://aistudio.google.com/app/apikey
 2. Sign out and sign in again with the new key
 3. Make sure you copied the entire key (no extra spaces)
@@ -356,14 +493,14 @@ https://aistudio.google.com/app/apikey
         }
 
         if (response.status === 403 || response.status === 401) {
-          const errorOutput = `❌ API Key Authentication Failed
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          const errorOutput = `API Key Authentication Failed
+========================================================
 
 Your API key is not authorized to use the Gemini API.
 
 Error: ${errorJson.error?.message || response.statusText}
 
-💡 Possible reasons:
+Possible reasons:
 1. API key is invalid or expired
 2. API key doesn't have permission for Gemini API
 3. Your API quota has been exceeded
@@ -378,8 +515,8 @@ Get a new key: https://aistudio.google.com/app/apikey
         }
 
         if (response.status === 429) {
-          const errorOutput = `❌ Rate Limit Exceeded
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          const errorOutput = `Rate Limit Exceeded
+========================================================
 
 You've exceeded the rate limit for the Gemini API.
 
@@ -387,7 +524,7 @@ Free tier limits:
 - 15 requests per minute
 - 1 million tokens per minute
 
-💡 What to do:
+What to do:
 1. Wait a minute and try again
 2. Consider upgrading your API plan
 3. Check your usage at: https://aistudio.google.com/app/apikey
@@ -460,8 +597,8 @@ Free tier limits:
         console.error('Error tracking failed:', e);
       }
       
-      const errorOutput = `❌ AI Execution Failed
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      const errorOutput = `AI Execution Failed
+========================================================
 
 Error: ${aiError.message || 'Unknown AI error'}
 

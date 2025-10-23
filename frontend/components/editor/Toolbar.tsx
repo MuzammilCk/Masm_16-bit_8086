@@ -63,11 +63,14 @@ export function Toolbar({ onToggleAI, onToggleOutput, onToggleDebug, showAI, sho
         signal: abortControllerRef.current.signal,
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
       const data = await response.json();
+      
+      // Handle validation errors (400 status)
+      if (!response.ok) {
+        setExecutionResult(null);
+        setOutput(data.output || `Error: ${data.error || 'Validation failed'}`);
+        return;
+      }
       
       // Debug: Log the full response structure
       console.log('📊 Execution Result:', data);
