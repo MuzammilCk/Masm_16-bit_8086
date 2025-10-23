@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { User, IUser } from '../models/User';
 
 // Extend Express Request to include user
@@ -13,9 +13,11 @@ export const generateToken = (userId: string): string => {
   const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this';
   const JWT_EXPIRE = process.env.JWT_EXPIRE || '7d';
 
-  return jwt.sign({ id: userId }, JWT_SECRET, {
-    expiresIn: JWT_EXPIRE,
-  });
+  const options: SignOptions = {
+    expiresIn: JWT_EXPIRE as unknown as SignOptions['expiresIn'],
+  };
+
+  return jwt.sign({ id: userId }, JWT_SECRET, options);
 };
 
 // Verify JWT token
@@ -71,7 +73,7 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
 
     // Attach user to request
     req.user = user;
-    req.userId = user._id.toString();
+    req.userId = String(user._id);
 
     next();
   } catch (error) {
@@ -121,7 +123,7 @@ export const optionalAuth = async (req: AuthRequest, res: Response, next: NextFu
         const user = await User.findById(decoded.id).select('-password');
         if (user) {
           req.user = user;
-          req.userId = user._id.toString();
+          req.userId = String(user._id);
         }
       }
     }

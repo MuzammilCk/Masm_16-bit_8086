@@ -11,7 +11,7 @@ pnpm-debug.log*
 .env.development.local
 .env.test.local
 .env.production.local
-.next/
+
 
 # Build outputs
 dist/
@@ -56,6 +56,7 @@ Thumbs.db
 frontend/dist/
 frontend/build/
 frontend/.vite/
+frontend/.next/
 
 # Backend specific
 backend/dist/
