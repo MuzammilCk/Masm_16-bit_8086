@@ -15,6 +15,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("Signing In...");
   const [error, setError] = useState("");
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   // Check if student is already logged in
   useEffect(() => {
@@ -23,7 +24,10 @@ export default function LoginPage() {
     
     if (savedToken && savedUsername) {
       // Auto redirect to editor if already logged in
+      setLoadingMessage("Already signed in. Redirecting...");
       router.push("/editor");
+    } else {
+      setIsCheckingAuth(false);
     }
   }, [router]);
 
@@ -97,6 +101,20 @@ export default function LoginPage() {
     }
   };
 
+  // Show loading screen while checking if already signed in
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-slate-900 to-slate-800 flex items-center justify-center p-4">
+        <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl shadow-2xl p-8 w-full max-w-md border border-slate-700 text-center">
+          <div className="flex items-center justify-center mb-4">
+            <Code className="h-12 w-12 text-blue-500 animate-pulse" />
+          </div>
+          <p className="text-white text-lg">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-slate-900 to-slate-800 flex items-center justify-center p-4">
       <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl shadow-2xl p-8 w-full max-w-md border border-slate-700">
@@ -105,7 +123,7 @@ export default function LoginPage() {
           <Code className="h-12 w-12 text-blue-500" />
         </div>
         <h1 className="text-3xl font-bold text-center mb-2 text-white">
-          ASM-Studio Pro
+          MASM Studio
         </h1>
         <p className="text-center text-slate-400 mb-8">
           Enter your credentials to start coding

@@ -1,10 +1,11 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Play, Square, Settings, PanelRightClose, PanelRightOpen, PanelBottomClose, PanelBottomOpen, Bug } from "lucide-react";
+import { Play, Square, Settings, PanelRightClose, PanelRightOpen, PanelBottomClose, PanelBottomOpen, Bug, LogOut } from "lucide-react";
 import { useExecutionStore } from "@/store/executionStore";
 import { useEditorStore } from "@/store/editorStore";
 import { useRef } from "react";
+import { useRouter } from "next/navigation";
 import { apiUrl } from "@/lib/api-config";
 
 interface ToolbarProps {
@@ -17,6 +18,7 @@ interface ToolbarProps {
 }
 
 export function Toolbar({ onToggleAI, onToggleOutput, onToggleDebug, showAI, showOutput, showDebug }: ToolbarProps) {
+  const router = useRouter();
   const { isExecuting, setIsExecuting, setOutput, setExecutionResult } = useExecutionStore();
   const { code } = useEditorStore();
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -43,13 +45,21 @@ export function Toolbar({ onToggleAI, onToggleOutput, onToggleDebug, showAI, sho
     try {
       // Get user's API key from localStorage (stored during login)
       const apiKey = localStorage.getItem("geminiApiKey");
+      const username = localStorage.getItem("studentUsername") || "Anonymous";
+      
+      // Get or create session ID for tracking
+      let sessionId = localStorage.getItem("sessionId");
+      if (!sessionId) {
+        sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        localStorage.setItem("sessionId", sessionId);
+      }
 
       const response = await fetch(apiUrl("/api/execute"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ code, apiKey }),
+        body: JSON.stringify({ code, apiKey, sessionId, username }),
         signal: abortControllerRef.current.signal,
       });
 
@@ -105,11 +115,21 @@ export function Toolbar({ onToggleAI, onToggleOutput, onToggleDebug, showAI, sho
     setIsExecuting(false);
   };
 
+  const handleLogout = () => {
+    // Clear all stored auth data
+    localStorage.removeItem("studentToken");
+    localStorage.removeItem("studentUsername");
+    localStorage.removeItem("geminiApiKey");
+    
+    // Redirect to landing page
+    router.push("/");
+  };
+
   return (
     <div className="h-12 border-b border-border bg-background flex items-center justify-between px-4">
       {/* Left: File actions */}
       <div className="flex items-center gap-2">
-        <span className="text-sm font-semibold">ASM-Studio Pro</span>
+        <span className="text-sm font-semibold">MASM Studio</span>
       </div>
 
       {/* Center: Execution controls */}
@@ -179,6 +199,17 @@ export function Toolbar({ onToggleAI, onToggleOutput, onToggleDebug, showAI, sho
 
         <Button size="icon" variant="ghost" title="Settings">
           <Settings className="h-4 w-4" />
+        </Button>
+
+        {/* Logout Button */}
+        <Button 
+          size="icon" 
+          variant="ghost" 
+          onClick={handleLogout}
+          title="Sign Out"
+          className="text-muted-foreground hover:text-destructive"
+        >
+          <LogOut className="h-4 w-4" />
         </Button>
       </div>
     </div>

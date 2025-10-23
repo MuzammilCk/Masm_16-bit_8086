@@ -1,6 +1,6 @@
 ; Array Sum Program
 ; Calculate the sum of an array of numbers
-; Author: ASM-Studio Pro
+; Author: MASM Studio
 ; Date: 2025-10-16
 
 ASSUME CS:CODE, DS:DATA

@@ -79,7 +79,7 @@ npm run dev
 
 2. **Frontend:**
    - Open: http://localhost:3000
-   - Should see the ASM-Studio Pro interface
+   - Should see the MASM Studio interface
 
 ## Test Authentication
 

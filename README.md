@@ -1,4 +1,4 @@
-# ASM-Studio Pro 🚀
+# MASM Studio 🚀
 ### Industrial-Grade MASM 16-bit 8086 Cloud IDE
 
 > **The Repl.it/CodeSandbox for Assembly Language**  
@@ -27,7 +27,7 @@
 
 ## 🎯 The Solution
 
-**ASM-Studio Pro** is an AI-powered web-based IDE for 8086 assembly language programming with MASM syntax.
+**MASM Studio** is an AI-powered web-based IDE for 8086 assembly language programming with MASM syntax.
 
 ### What's Currently Working
 
@@ -54,7 +54,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     ASM-Studio Pro                          │
+│                      MASM Studio                            │
 │  "Your Personal Assembly Language Teaching Assistant"       │
 └─────────────────────────────────────────────────────────────┘
                               │
@@ -85,7 +85,7 @@
 
 ## 🤖 AI System Prompt
 
-The heart of ASM-Studio Pro is its **industrial-grade AI system prompt** that powers the teaching assistant.
+The heart of MASM Studio is its **industrial-grade AI system prompt** that powers the teaching assistant.
 
 ### Current AI Capabilities
 

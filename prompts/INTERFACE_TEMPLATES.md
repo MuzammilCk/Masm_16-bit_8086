@@ -1,4 +1,4 @@
-# ASM-Studio Pro - Interface Templates
+# MASM Studio - Interface Templates
 
 ## Response Templates for AI System
 

@@ -139,7 +139,7 @@ async function startServer() {
     
     // Start Express server with Socket.IO
     server.listen(PORT, () => {
-      console.log(`🚀 ASM-Studio Backend running on port ${PORT}`);
+      console.log(`🚀 MASM Studio Backend running on port ${PORT}`);
       console.log(`📍 Health check: http://localhost:${PORT}/health`);
       console.log(`📍 API: http://localhost:${PORT}/api`);
       console.log(`🔌 Socket.IO enabled for real-time collaboration`);

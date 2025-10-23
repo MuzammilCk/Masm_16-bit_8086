@@ -1,6 +1,6 @@
 # 🚀 Quick Deploy to Render
 
-Deploy ASM-Studio Pro to Render in **30 minutes**!
+Deploy MASM Studio to Render in **30 minutes**!
 
 ---
 
@@ -238,7 +238,7 @@ Your deployment is successful when:
 
 ## 🎓 What's Deployed
 
-**ASM-Studio Pro** - Full-featured 8086 assembly IDE with:
+**MASM Studio** - Full-featured 8086 assembly IDE with:
 - ✅ Monaco code editor with syntax highlighting
 - ✅ AI-powered execution (Gemini API)
 - ✅ Step-by-step trace visualization

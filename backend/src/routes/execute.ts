@@ -192,13 +192,42 @@ function formatExecutionOutput(data: any): string {
 // Execute assembly code
 router.post('/', async (req, res) => {
   try {
-    const { code, apiKey } = req.body;
+    const { code, apiKey, sessionId } = req.body;
 
     if (!code || typeof code !== 'string') {
       return res.status(400).json({ error: 'Code is required' });
     }
 
     console.log('[/api/execute] Received code:', code);
+
+    // Track session for admin dashboard
+    const username = req.body.username || 'Anonymous';
+    const sid = sessionId || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    try {
+      let session = await Session.findOne({ sessionId: sid });
+      
+      if (!session) {
+        session = new Session({
+          sessionId: sid,
+          username,
+          codeExecuted: code,
+          executionCount: 1,
+          errorMessages: [],
+          ipAddress: req.ip,
+          userAgent: req.get('user-agent')
+        });
+      } else {
+        session.executionCount += 1;
+        session.codeExecuted = code;
+        session.lastActivity = new Date();
+      }
+      
+      await session.save();
+    } catch (sessionError) {
+      console.error('Session tracking error:', sessionError);
+      // Don't fail execution if session tracking fails
+    }
 
     // Check if user provided API key
     if (!apiKey) {
@@ -209,6 +238,18 @@ Error: No Gemini API key provided.
 
 Please provide your Gemini API key during sign-in.
 `;
+      
+      // Track error in session
+      try {
+        const session = await Session.findOne({ sessionId: sid });
+        if (session) {
+          session.errorMessages.push('No Gemini API key provided');
+          await session.save();
+        }
+      } catch (e) {
+        console.error('Error tracking failed:', e);
+      }
+      
       return res.status(400).json({ 
         success: false, 
         output: errorOutput, 
@@ -407,6 +448,17 @@ Free tier limits:
 
     } catch (aiError: any) {
       console.error('AI Execution error:', aiError);
+      
+      // Track error in session
+      try {
+        const session = await Session.findOne({ sessionId: sid });
+        if (session) {
+          session.errorMessages.push(aiError.message || 'AI Execution Failed');
+          await session.save();
+        }
+      } catch (e) {
+        console.error('Error tracking failed:', e);
+      }
       
       const errorOutput = `❌ AI Execution Failed
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

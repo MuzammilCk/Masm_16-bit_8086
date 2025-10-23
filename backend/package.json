@@ -1,7 +1,7 @@
 {
-  "name": "@asmstudio/backend",
+  "name": "@masmstudio/backend",
   "version": "1.0.0",
-  "description": "ASM-Studio Pro Backend API",
+  "description": "MASM Studio Backend API",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",

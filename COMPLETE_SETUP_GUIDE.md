@@ -1,4 +1,4 @@
-# 🎉 ASM-Studio Pro - Complete Setup Guide
+# 🎉 MASM Studio - Complete Setup Guide
 
 ## ✅ ALL FEATURES IMPLEMENTED!
 
@@ -204,7 +204,7 @@ npm run dev
 
 You should see:
 ```
-🚀 ASM-Studio Backend running on port 3001
+🚀 MASM Studio Backend running on port 3001
 📍 Health check: http://localhost:3001/health
 📍 API: http://localhost:3001/api
 🔌 Socket.IO enabled for real-time collaboration
@@ -360,7 +360,7 @@ socket.on('code-update', (data) => {
 ## 📁 File Structure
 
 ```
-ASM-Studio Pro/
+MASM Studio/
 │
 ├── prompts/                          ✅ CREATED
 │   ├── CORE_SYSTEM_PROMPT.md

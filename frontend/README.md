@@ -1,4 +1,4 @@
-# ASM-Studio Pro Frontend
+# MASM Studio Frontend
 
 ## Quick Setup
 

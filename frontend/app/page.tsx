@@ -1,22 +1,42 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Code } from "lucide-react";
 
 export default function HomePage() {
   const router = useRouter();
+  const [isChecking, setIsChecking] = useState(true);
+  const [isSignedIn, setIsSignedIn] = useState(false);
 
   // Check if student is already logged in
   useEffect(() => {
     const savedToken = localStorage.getItem("studentToken");
-    if (savedToken) {
-      // Student already signed in - go straight to editor
-      router.push("/editor");
+    const savedUsername = localStorage.getItem("studentUsername");
+    
+    if (savedToken && savedUsername) {
+      // Student already signed in
+      setIsSignedIn(true);
+      setIsChecking(false);
+    } else {
+      setIsChecking(false);
     }
   }, [router]);
+
+  const handleGoToEditor = () => {
+    router.push("/editor");
+  };
+
+  // Show loading or blank screen while checking auth
+  if (isChecking) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-background to-secondary flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary flex items-center justify-center">
@@ -36,15 +56,29 @@ export default function HomePage() {
             Learn 8086 assembly with the IDE that makes it actually enjoyable.
           </p>
           
-          {/* CTA Button */}
+          {/* CTA Buttons */}
           <div className="flex items-center justify-center gap-4">
-            <Link href="/login">
-              <Button size="lg" className="button-hover">
-                Start Coding
+            {isSignedIn ? (
+              <Button size="lg" className="button-hover" onClick={handleGoToEditor}>
+                <Code className="mr-2 h-5 w-5" />
+                Go to Editor
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
-            </Link>
+            ) : (
+              <Link href="/login">
+                <Button size="lg" className="button-hover">
+                  Start Coding
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+            )}
           </div>
+          
+          {isSignedIn && (
+            <p className="text-sm text-muted-foreground">
+              Welcome back! Click above to continue coding.
+            </p>
+          )}
         </div>
       </div>
     </div>

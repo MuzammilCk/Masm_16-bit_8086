@@ -1,6 +1,6 @@
 ; Simple Addition Program
 ; This program adds two 8-bit numbers and stores the result
-; Author: ASM-Studio Pro
+; Author: MASM Studio
 ; Date: 2025-10-16
 
 ASSUME CS:CODE, DS:DATA

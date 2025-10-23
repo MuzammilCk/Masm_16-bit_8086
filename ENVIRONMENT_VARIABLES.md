@@ -1,6 +1,6 @@
 # 🔐 Environment Variables Reference
 
-This document lists all environment variables needed for ASM-Studio Pro deployment.
+This document lists all environment variables needed for MASM Studio deployment.
 
 ---
 

@@ -1,5 +1,5 @@
 {
-  "name": "asm-studio-pro",
+  "name": "masm-studio",
   "version": "1.0.0",
   "description": "Industrial-Grade MASM 16-bit 8086 Cloud IDE with AI-powered teaching assistant",
   "main": "backend/src/index.ts",
@@ -37,14 +37,14 @@
     "debugger",
     "simulator"
   ],
-  "author": "ASM-Studio Pro Team",
+  "author": "MASM Studio Team",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/asm-studio-pro.git"
+    "url": "https://github.com/yourusername/masm-studio.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/asm-studio-pro/issues"
+    "url": "https://github.com/yourusername/masm-studio/issues"
   },
   "homepage": "https://asmstudio.dev",
   "devDependencies": {

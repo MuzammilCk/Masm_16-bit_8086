@@ -1,4 +1,4 @@
-# ASM-Studio AI Engine
+# MASM Studio AI Engine
 
 AI-powered assembly language compiler, executor, and teaching assistant using Google's Gemini 2.0 Flash.
 

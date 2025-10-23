@@ -17,12 +17,12 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ASM-Studio Pro - Modern Assembly Language IDE",
+  title: "MASM Studio - Modern Assembly Language IDE",
   description: "The revolutionary cloud IDE for MASM 16-bit 8086 assembly language with AI-powered teaching assistant",
   keywords: ["assembly", "8086", "masm", "ide", "education", "ai", "compiler", "debugger"],
-  authors: [{ name: "ASM-Studio Pro Team" }],
+  authors: [{ name: "MASM Studio Team" }],
   openGraph: {
-    title: "ASM-Studio Pro",
+    title: "MASM Studio",
     description: "Revolutionary Assembly Language IDE with AI",
     type: "website",
   },

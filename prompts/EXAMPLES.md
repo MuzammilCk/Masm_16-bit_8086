@@ -1,4 +1,4 @@
-# ASM-Studio Pro - Complete Interaction Examples
+# MASM Studio - Complete Interaction Examples
 
 ## Example 1: Simple Addition Program
 
@@ -488,4 +488,4 @@ Try the corrected version and let me know if it works! 🚀
 
 **Version:** 1.0.0  
 **Last Updated:** October 2025  
-**Purpose:** Training examples for ASM-Studio Pro AI system
+**Purpose:** Training examples for MASM Studio AI system

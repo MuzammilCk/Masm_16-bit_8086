@@ -1,8 +1,8 @@
-# ASM-Studio Pro - Implementation Guide
+# MASM Studio - Implementation Guide
 
 ## 🎉 What's Been Implemented
 
-This guide covers all the features that have been added to transform ASM-Studio Pro into a fully-featured platform.
+This guide covers all the features that have been added to transform MASM Studio into a fully-featured platform.
 
 ---
 

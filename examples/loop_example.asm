@@ -1,6 +1,6 @@
 ; Loop Example - Count from 1 to 5
 ; Demonstrates the LOOP instruction and CX register
-; Author: ASM-Studio Pro
+; Author: MASM Studio
 ; Date: 2025-10-16
 
 ASSUME CS:CODE, DS:DATA

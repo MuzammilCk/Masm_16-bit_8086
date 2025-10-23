@@ -1,6 +1,6 @@
 ; Factorial Calculator
 ; Calculate factorial of a number (e.g., 5! = 120)
-; Author: ASM-Studio Pro
+; Author: MASM Studio
 ; Date: 2025-10-16
 
 ASSUME CS:CODE, DS:DATA

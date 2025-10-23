@@ -1,4 +1,4 @@
-# 🚀 Complete Render Deployment Guide for ASM-Studio Pro
+# 🚀 Complete Render Deployment Guide for MASM Studio
 
 This guide will walk you through deploying both the **backend** (Node.js/Express) and **frontend** (Next.js) to Render.
 
@@ -360,4 +360,4 @@ If you encounter issues:
 
 ---
 
-**🎓 Happy Teaching & Learning with ASM-Studio Pro!**
+**🎓 Happy Teaching & Learning with MASM Studio!**

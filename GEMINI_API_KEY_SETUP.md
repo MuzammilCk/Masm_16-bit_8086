@@ -22,7 +22,7 @@ Each student now uses their **own Gemini API key** when signing in. This means:
    - Click "Create API Key"
    - Copy the generated key (starts with `AIza...`)
 
-### Step 2: Sign In to ASM-Studio Pro
+### Step 2: Sign In to MASM Studio
 
 1. **Open the app:**
    - Go to: `http://localhost:3000`

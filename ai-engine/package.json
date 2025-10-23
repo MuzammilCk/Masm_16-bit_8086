@@ -1,5 +1,5 @@
 {
-  "name": "@asmstudio/ai-engine",
+  "name": "@masmstudio/ai-engine",
   "version": "1.0.0",
   "description": "AI-powered assembly language compiler, executor, and teaching assistant",
   "type": "module",
@@ -23,7 +23,7 @@
     "gemini",
     "education"
   ],
-  "author": "ASM-Studio Pro Team",
+  "author": "MASM Studio Team",
   "license": "MIT",
   "dependencies": {
     "@google/generative-ai": "^0.21.0",

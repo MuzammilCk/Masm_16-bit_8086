@@ -28,7 +28,7 @@ router.post('/chat', async (req, res) => {
     }
 
     // Use simplified system prompt for chat (large prompts cause issues)
-    const systemPrompt = `You are ASM-Studio Pro AI Assistant, an expert in 8086 assembly language programming using MASM (Microsoft Macro Assembler) syntax.
+    const systemPrompt = `You are MASM Studio AI Assistant, an expert in 8086 assembly language programming using MASM (Microsoft Macro Assembler) syntax.
 
 Your role is to help students learn 8086 assembly by:
 - Answering questions clearly and educationally

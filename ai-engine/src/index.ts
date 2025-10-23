@@ -1,5 +1,5 @@
 /**
- * ASM-Studio Pro - AI Engine Entry Point
+ * MASM Studio - AI Engine Entry Point
  * 
  * This module integrates with Gemini 2.5 Flash to provide:
  * - Code compilation and validation
@@ -59,7 +59,7 @@ export class ASMStudioAI {
       systemInstruction: this.systemPrompt,
     });
     
-    console.log('✅ ASM-Studio AI Engine initialized');
+    console.log('✅ MASM Studio AI Engine initialized');
   }
 
   /**
@@ -202,7 +202,7 @@ const isMainModule = import.meta.url === `file://${process.argv[1]}`;
 
 if (isMainModule) {
   aiEngine.initialize().then(() => {
-    console.log('🤖 ASM-Studio AI Engine ready');
+    console.log('🤖 MASM Studio AI Engine ready');
   }).catch((error) => {
     console.error('Failed to initialize AI engine:', error);
     process.exit(1);

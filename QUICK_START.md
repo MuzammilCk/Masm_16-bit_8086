@@ -15,7 +15,7 @@ npm run dev
 
 You should see:
 ```
-🚀 ASM-Studio Backend running on port 3001
+🚀 MASM Studio Backend running on port 3001
 ```
 
 ---
@@ -141,7 +141,7 @@ DS:0002     3A      RES
 
 ## 🎉 Success!
 
-You now have **LIVE VISUAL DEBUGGING** in your ASM-Studio Pro!
+You now have **LIVE VISUAL DEBUGGING** in your MASM Studio!
 
 **What changed:**
 - ✅ Debug panels integrated into editor
