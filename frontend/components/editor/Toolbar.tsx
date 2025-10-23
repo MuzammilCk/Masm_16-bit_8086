@@ -126,22 +126,22 @@ export function Toolbar({ onToggleAI, onToggleOutput, onToggleDebug, showAI, sho
   };
 
   return (
-    <div className="h-12 border-b border-border bg-background flex items-center justify-between px-4">
+    <div className="h-12 border-b border-border bg-background flex items-center justify-between px-2 md:px-4 shrink-0">
       {/* Left: File actions */}
       <div className="flex items-center gap-2">
-        <span className="text-sm font-semibold">MASM Studio</span>
+        <span className="text-xs md:text-sm font-semibold">MASM Studio</span>
       </div>
 
       {/* Center: Execution controls */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 md:gap-2">
         <Button
           size="sm"
           onClick={handleRun}
           disabled={isExecuting}
           className="button-hover"
         >
-          <Play className="h-4 w-4 mr-2" />
-          Run (F5)
+          <Play className="h-4 w-4 md:mr-2" />
+          <span className="hidden md:inline">Run (F5)</span>
         </Button>
 
         <Button
@@ -150,19 +150,20 @@ export function Toolbar({ onToggleAI, onToggleOutput, onToggleDebug, showAI, sho
           onClick={handleStop}
           disabled={!isExecuting}
         >
-          <Square className="h-4 w-4 mr-2" />
-          Stop
+          <Square className="h-4 w-4 md:mr-2" />
+          <span className="hidden md:inline">Stop</span>
         </Button>
       </div>
 
       {/* Right: Settings */}
-      <div className="flex items-center gap-2">
-        {/* Toggle Output Panel */}
+      <div className="flex items-center gap-1 md:gap-2">
+        {/* Toggle Output Panel - Desktop Only */}
         <Button
           size="icon"
           variant="ghost"
           onClick={onToggleOutput}
           title={showOutput ? "Hide Output Panel" : "Show Output Panel"}
+          className="hidden md:inline-flex"
         >
           {showOutput ? (
             <PanelBottomClose className="h-4 w-4" />
@@ -171,12 +172,13 @@ export function Toolbar({ onToggleAI, onToggleOutput, onToggleDebug, showAI, sho
           )}
         </Button>
 
-        {/* Toggle AI Panel */}
+        {/* Toggle AI Panel - Desktop Only */}
         <Button
           size="icon"
           variant="ghost"
           onClick={onToggleAI}
-          title={showAI ? "Hide AI Assistant" : "Show AI Assistant"}
+          title={showAI ? "Hide AI Panel" : "Show AI Panel"}
+          className="hidden md:inline-flex"
         >
           {showAI ? (
             <PanelRightClose className="h-4 w-4" />
@@ -197,7 +199,7 @@ export function Toolbar({ onToggleAI, onToggleOutput, onToggleDebug, showAI, sho
           </Button>
         )}
 
-        <Button size="icon" variant="ghost" title="Settings">
+        <Button size="icon" variant="ghost" title="Settings" className="hidden md:inline-flex">
           <Settings className="h-4 w-4" />
         </Button>
 

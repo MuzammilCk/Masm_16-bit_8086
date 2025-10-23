@@ -39,19 +39,19 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-b from-background to-secondary flex items-center justify-center p-4">
       {/* Hero Section */}
       <div className="container mx-auto px-4">
-        <div className="text-center space-y-8 max-w-4xl mx-auto">
+        <div className="text-center space-y-6 md:space-y-8 max-w-4xl mx-auto">
           {/* Headline */}
-          <h1 className="text-6xl font-bold tracking-tight">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
             The Modern IDE for
             <br />
             <span className="text-primary">Assembly Language</span>
           </h1>
           
           {/* Subheadline */}
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-base md:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
             Zero setup. Visual debugging. AI-powered. Built for education.
             Learn 8086 assembly with the IDE that makes it actually enjoyable.
           </p>
@@ -59,14 +59,14 @@ export default function HomePage() {
           {/* CTA Buttons */}
           <div className="flex items-center justify-center gap-4">
             {isSignedIn ? (
-              <Button size="lg" className="button-hover" onClick={handleGoToEditor}>
+              <Button size="lg" className="button-hover w-full md:w-auto" onClick={handleGoToEditor}>
                 <Code className="mr-2 h-5 w-5" />
                 Go to Editor
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             ) : (
-              <Link href="/login">
-                <Button size="lg" className="button-hover">
+              <Link href="/login" className="w-full md:w-auto">
+                <Button size="lg" className="button-hover w-full">
                   Start Coding
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>

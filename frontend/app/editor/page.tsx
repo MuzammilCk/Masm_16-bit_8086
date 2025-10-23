@@ -9,12 +9,14 @@ import { ExecutionPanel } from "@/components/execution/ExecutionPanel";
 import { AIChat } from "@/components/ai/AIChat";
 import { ResizablePanel } from "@/components/ui/resizable-panel";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Terminal, Sparkles, Bug } from "lucide-react";
+import { ChevronLeft, ChevronRight, Terminal, Sparkles, Bug, Code, Menu } from "lucide-react";
 import { useEditorStore } from "@/store/editorStore";
 import { useExecutionStore } from "@/store/executionStore";
 import { RegisterPanel } from "@/components/debug/RegisterPanel";
 import { FlagsPanel } from "@/components/debug/FlagsPanel";
 import { MemoryViewer } from "@/components/debug/MemoryViewer";
+
+type MobileTab = 'editor' | 'output' | 'ai';
 
 export default function EditorPage() {
   const router = useRouter();
@@ -25,6 +27,19 @@ export default function EditorPage() {
   const [showEditor, setShowEditor] = useState(true);
   const [showDebug, setShowDebug] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [mobileTab, setMobileTab] = useState<MobileTab>('editor');
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Check if student is logged in
   useEffect(() => {
@@ -43,7 +58,7 @@ export default function EditorPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-background">
+    <div className="h-screen flex flex-col bg-background overflow-hidden">
       {/* Toolbar */}
       <Toolbar 
         onToggleAI={() => setShowAI(!showAI)} 
@@ -54,28 +69,70 @@ export default function EditorPage() {
         showDebug={showDebug}
       />
       
+      {/* Mobile Tabs */}
+      {isMobile && (
+        <div className="flex border-b border-border bg-muted/30 shrink-0">
+          <button
+            onClick={() => setMobileTab('editor')}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
+              mobileTab === 'editor'
+                ? 'text-primary border-b-2 border-primary bg-background'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Code className="h-4 w-4" />
+            Editor
+          </button>
+          <button
+            onClick={() => setMobileTab('output')}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
+              mobileTab === 'output'
+                ? 'text-primary border-b-2 border-primary bg-background'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Terminal className="h-4 w-4" />
+            Output
+          </button>
+          <button
+            onClick={() => setMobileTab('ai')}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
+              mobileTab === 'ai'
+                ? 'text-primary border-b-2 border-primary bg-background'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Sparkles className="h-4 w-4" />
+            AI
+          </button>
+        </div>
+      )}
+      
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden md:flex-row flex-col min-h-0">
         {/* Left: Code Editor */}
-        {showEditor && (
+        {(isMobile ? mobileTab === 'editor' : showEditor) && (
           <ResizablePanel
             defaultSize={!showOutput && !showAI ? 100 : !showOutput ? 70 : !showAI ? 50 : 40}
             minSize={30}
             maxSize={100}
+            className={isMobile ? 'w-full' : ''}
           >
             <div className="h-full flex flex-col bg-background">
-              <div className="h-10 border-b border-border flex items-center justify-between px-4">
-                <h3 className="text-sm font-semibold">Code Editor</h3>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => setShowEditor(false)}
-                  className="h-6 w-6"
-                  title="Collapse panel"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-              </div>
+              {!isMobile && (
+                <div className="h-10 border-b border-border flex items-center justify-between px-4">
+                  <h3 className="text-sm font-semibold">Code Editor</h3>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => setShowEditor(false)}
+                    className="h-6 w-6"
+                    title="Collapse panel"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
               <div className="flex-1">
                 <CodeEditor />
               </div>
@@ -84,7 +141,7 @@ export default function EditorPage() {
         )}
         
         {/* Middle: Execution Output */}
-        {showOutput && (
+        {(isMobile ? mobileTab === 'output' : showOutput) && (
           <ResizablePanel
             defaultSize={
               !showEditor && !showAI ? 100 :
@@ -94,13 +151,14 @@ export default function EditorPage() {
             }
             minSize={20}
             maxSize={100}
+            className={isMobile ? 'w-full' : ''}
           >
-            <ExecutionPanel onCollapse={() => setShowOutput(false)} />
+            <ExecutionPanel onCollapse={() => !isMobile && setShowOutput(false)} />
           </ResizablePanel>
         )}
         
         {/* Right: AI Chat */}
-        {showAI && (
+        {(isMobile ? mobileTab === 'ai' : showAI) && (
           <ResizablePanel
             defaultSize={
               !showEditor && !showOutput ? 100 :
@@ -110,72 +168,79 @@ export default function EditorPage() {
             }
             minSize={20}
             maxSize={100}
+            className={isMobile ? 'w-full' : ''}
           >
-            <AIChat onCollapse={() => setShowAI(false)} />
+            <AIChat onCollapse={() => !isMobile && setShowAI(false)} />
           </ResizablePanel>
         )}
         
-        {/* Floating Expand Buttons */}
-        {!showEditor && (
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => setShowEditor(true)}
-            className="fixed bottom-32 left-4 z-50 shadow-lg"
-            title="Show Code Editor"
-          >
-            <ChevronRight className="h-4 w-4 mr-2" />
-            Code Editor
-          </Button>
-        )}
-        
-        {!showOutput && (
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => setShowOutput(true)}
-            className="fixed bottom-20 right-4 z-50 shadow-lg"
-            title="Show Execution Output"
-          >
-            <Terminal className="h-4 w-4 mr-2" />
-            Output
-            <ChevronLeft className="h-4 w-4 ml-2" />
-          </Button>
-        )}
-        
-        {!showAI && (
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => setShowAI(true)}
-            className="fixed bottom-8 right-4 z-50 shadow-lg"
-            title="Show AI Assistant"
-          >
-            <Sparkles className="h-4 w-4 mr-2" />
-            AI Assistant
-            <ChevronLeft className="h-4 w-4 ml-2" />
-          </Button>
-        )}
-        
-        {/* Debug Panel Toggle Button */}
-        {!showDebug && executionResult && (
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => setShowDebug(true)}
-            className="fixed bottom-20 right-4 z-50 shadow-lg"
-            title="Show Debug Panels"
-          >
-            <Bug className="h-4 w-4 mr-2" />
-            Debug
-            <ChevronLeft className="h-4 w-4 ml-2" />
-          </Button>
+        {/* Floating Expand Buttons - Desktop Only */}
+        {!isMobile && (
+          <>
+            {!showEditor && (
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => setShowEditor(true)}
+                className="fixed bottom-32 left-4 z-50 shadow-lg"
+                title="Show Code Editor"
+              >
+                <ChevronRight className="h-4 w-4 mr-2" />
+                Code Editor
+              </Button>
+            )}
+            
+            {!showOutput && (
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => setShowOutput(true)}
+                className="fixed bottom-20 right-4 z-50 shadow-lg"
+                title="Show Execution Output"
+              >
+                <Terminal className="h-4 w-4 mr-2" />
+                Output
+                <ChevronLeft className="h-4 w-4 ml-2" />
+              </Button>
+            )}
+            
+            {!showAI && (
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => setShowAI(true)}
+                className="fixed bottom-8 right-4 z-50 shadow-lg"
+                title="Show AI Assistant"
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                AI Assistant
+                <ChevronLeft className="h-4 w-4 ml-2" />
+              </Button>
+            )}
+            
+            {/* Debug Panel Toggle Button */}
+            {!showDebug && executionResult && (
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => setShowDebug(true)}
+                className="fixed bottom-20 right-4 z-50 shadow-lg"
+                title="Show Debug Panels"
+              >
+                <Bug className="h-4 w-4 mr-2" />
+                Debug
+                <ChevronLeft className="h-4 w-4 ml-2" />
+              </Button>
+            )}
+          </>
         )}
       </div>
       
       {/* Debug Panels (Bottom Section) */}
       {showDebug && executionResult && (
-        <div className="h-80 border-t border-border bg-background">
+        <div className={`border-t border-border bg-background ${
+          isMobile ? 'h-96' : 'h-80'
+        }`}>
           <div className="h-full flex flex-col">
             {/* Debug Header */}
             <div className="h-10 border-b border-border flex items-center justify-between px-4 bg-muted/30">
@@ -194,8 +259,10 @@ export default function EditorPage() {
               </Button>
             </div>
             
-            {/* Debug Content Grid */}
-            <div className="flex-1 grid grid-cols-3 gap-4 p-4 overflow-auto">
+            {/* Debug Content Grid - Responsive */}
+            <div className={`flex-1 gap-4 p-4 overflow-auto ${
+              isMobile ? 'flex flex-col' : 'grid grid-cols-3'
+            }`}>
               <RegisterPanel 
                 registers={executionResult.registers || {}}
               />
