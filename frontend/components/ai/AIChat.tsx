@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Send, Sparkles, ChevronRight } from "lucide-react";
 import { AIMessageRenderer } from "./AIMessageRenderer";
+import { apiUrl } from "@/lib/api-config";
 
 interface Message {
   role: "user" | "assistant";
@@ -34,7 +35,7 @@ export function AIChat({ onCollapse }: AIChatProps) {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3001/api/ai/chat", {
+      const response = await fetch(apiUrl("/api/ai/chat"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

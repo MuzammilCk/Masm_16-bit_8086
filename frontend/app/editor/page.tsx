@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { CodeEditor } from "@/components/editor/CodeEditor";
 import { Toolbar } from "@/components/editor/Toolbar";
 import { StatusBar } from "@/components/editor/StatusBar";
@@ -8,16 +9,38 @@ import { ExecutionPanel } from "@/components/execution/ExecutionPanel";
 import { AIChat } from "@/components/ai/AIChat";
 import { ResizablePanel } from "@/components/ui/resizable-panel";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Terminal, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, Terminal, Sparkles, Bug } from "lucide-react";
 import { useEditorStore } from "@/store/editorStore";
 import { useExecutionStore } from "@/store/executionStore";
+import { RegisterPanel } from "@/components/debug/RegisterPanel";
+import { FlagsPanel } from "@/components/debug/FlagsPanel";
+import { MemoryViewer } from "@/components/debug/MemoryViewer";
 
 export default function EditorPage() {
+  const router = useRouter();
   const { code, setCode } = useEditorStore();
-  const { isExecuting } = useExecutionStore();
+  const { isExecuting, executionResult } = useExecutionStore();
   const [showAI, setShowAI] = useState(false);
   const [showOutput, setShowOutput] = useState(true);
   const [showEditor, setShowEditor] = useState(true);
+  const [showDebug, setShowDebug] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Check if student is logged in
+  useEffect(() => {
+    const savedToken = localStorage.getItem("studentToken");
+    if (!savedToken) {
+      // Not logged in - redirect to login
+      router.push("/login");
+    } else {
+      setIsAuthenticated(true);
+    }
+  }, [router]);
+
+  // Don't render editor until authentication check is complete
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="h-screen flex flex-col bg-background">
@@ -25,8 +48,10 @@ export default function EditorPage() {
       <Toolbar 
         onToggleAI={() => setShowAI(!showAI)} 
         onToggleOutput={() => setShowOutput(!showOutput)}
+        onToggleDebug={() => setShowDebug(!showDebug)}
         showAI={showAI}
         showOutput={showOutput}
+        showDebug={showDebug}
       />
       
       {/* Main Content */}
@@ -131,7 +156,59 @@ export default function EditorPage() {
             <ChevronLeft className="h-4 w-4 ml-2" />
           </Button>
         )}
+        
+        {/* Debug Panel Toggle Button */}
+        {!showDebug && executionResult && (
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => setShowDebug(true)}
+            className="fixed bottom-20 right-4 z-50 shadow-lg"
+            title="Show Debug Panels"
+          >
+            <Bug className="h-4 w-4 mr-2" />
+            Debug
+            <ChevronLeft className="h-4 w-4 ml-2" />
+          </Button>
+        )}
       </div>
+      
+      {/* Debug Panels (Bottom Section) */}
+      {showDebug && executionResult && (
+        <div className="h-80 border-t border-border bg-background">
+          <div className="h-full flex flex-col">
+            {/* Debug Header */}
+            <div className="h-10 border-b border-border flex items-center justify-between px-4 bg-muted/30">
+              <div className="flex items-center gap-2">
+                <Bug className="h-4 w-4 text-primary" />
+                <h3 className="text-sm font-semibold">Debug Information</h3>
+              </div>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => setShowDebug(false)}
+                className="h-6 w-6"
+                title="Hide debug panels"
+              >
+                <ChevronLeft className="h-4 w-4 rotate-90" />
+              </Button>
+            </div>
+            
+            {/* Debug Content Grid */}
+            <div className="flex-1 grid grid-cols-3 gap-4 p-4 overflow-auto">
+              <RegisterPanel 
+                registers={executionResult.registers || {}}
+              />
+              <FlagsPanel 
+                flags={executionResult.flags || {}}
+              />
+              <MemoryViewer 
+                memory={executionResult.memory || []}
+              />
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Status Bar */}
       <StatusBar />

@@ -1,8 +1,23 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 
 export default function HomePage() {
+  const router = useRouter();
+
+  // Check if student is already logged in
+  useEffect(() => {
+    const savedToken = localStorage.getItem("studentToken");
+    if (savedToken) {
+      // Student already signed in - go straight to editor
+      router.push("/editor");
+    }
+  }, [router]);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary flex items-center justify-center">
       {/* Hero Section */}
@@ -22,8 +37,8 @@ export default function HomePage() {
           </p>
           
           {/* CTA Button */}
-          <div className="flex items-center justify-center">
-            <Link href="/editor">
+          <div className="flex items-center justify-center gap-4">
+            <Link href="/login">
               <Button size="lg" className="button-hover">
                 Start Coding
                 <ArrowRight className="ml-2 h-5 w-5" />

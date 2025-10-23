@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { apiUrl } from '@/lib/api-config';
 
 interface StreamState {
   status: 'idle' | 'parsing' | 'building' | 'compiling' | 'executing' | 'complete' | 'error';
@@ -50,7 +51,7 @@ export function useStreamingExecution() {
     setIsStreaming(true);
 
     try {
-      const response = await fetch('http://localhost:3001/api/execute/stream', {
+      const response = await fetch(apiUrl('/api/execute/stream'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code }),

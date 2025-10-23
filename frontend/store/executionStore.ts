@@ -46,6 +46,9 @@ interface ExecutionStore {
   flags: Flag[];
   setFlags: (flags: Flag[]) => void;
   
+  executionResult: any | null;
+  setExecutionResult: (result: any) => void;
+  
   reset: () => void;
 }
 
@@ -98,6 +101,9 @@ export const useExecutionStore = create<ExecutionStore>((set) => ({
   flags: initialFlags,
   setFlags: (flags) => set({ flags }),
   
+  executionResult: null,
+  setExecutionResult: (result) => set({ executionResult: result }),
+  
   reset: () =>
     set({
       isExecuting: false,
@@ -107,5 +113,6 @@ export const useExecutionStore = create<ExecutionStore>((set) => ({
       errors: [],
       registers: initialRegisters,
       flags: initialFlags,
+      executionResult: null,
     }),
 }));

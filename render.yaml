@@ -1,0 +1,41 @@
+services:
+  # Backend API Service
+  - type: web
+    name: asmstudio-backend
+    runtime: node
+    region: oregon
+    plan: free
+    buildCommand: cd backend && npm install && npm run build
+    startCommand: cd backend && npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: MONGODB_URI
+        sync: false  # Set manually in Render dashboard
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        sync: false  # Will be set after frontend deployment
+    autoDeploy: true
+
+  # Frontend Next.js Service
+  - type: web
+    name: asmstudio-frontend
+    runtime: node
+    region: oregon
+    plan: free
+    buildCommand: cd frontend && npm install && npm run build
+    startCommand: cd frontend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_BACKEND_URL
+        sync: false  # Set manually to backend URL
+    autoDeploy: true
+
+# Database (MongoDB Atlas - Free tier recommended)
+# Note: Render doesn't provide free MongoDB. Use MongoDB Atlas free tier instead.
+# Get connection string from: https://www.mongodb.com/cloud/atlas

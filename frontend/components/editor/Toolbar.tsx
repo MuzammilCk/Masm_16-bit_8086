@@ -1,29 +1,25 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Play, Square, Moon, Sun, Settings, PanelRightClose, PanelRightOpen, PanelBottomClose, PanelBottomOpen } from "lucide-react";
-import { useTheme } from "next-themes";
+import { Play, Square, Settings, PanelRightClose, PanelRightOpen, PanelBottomClose, PanelBottomOpen, Bug } from "lucide-react";
 import { useExecutionStore } from "@/store/executionStore";
 import { useEditorStore } from "@/store/editorStore";
-import { useEffect, useState } from "react";
+import { useRef } from "react";
+import { apiUrl } from "@/lib/api-config";
 
 interface ToolbarProps {
   onToggleAI: () => void;
   onToggleOutput: () => void;
+  onToggleDebug?: () => void;
   showAI: boolean;
   showOutput: boolean;
+  showDebug?: boolean;
 }
 
-export function Toolbar({ onToggleAI, onToggleOutput, showAI, showOutput }: ToolbarProps) {
-  const { theme, setTheme } = useTheme();
-  const { isExecuting, setIsExecuting, setOutput } = useExecutionStore();
+export function Toolbar({ onToggleAI, onToggleOutput, onToggleDebug, showAI, showOutput, showDebug }: ToolbarProps) {
+  const { isExecuting, setIsExecuting, setOutput, setExecutionResult } = useExecutionStore();
   const { code } = useEditorStore();
-  const [mounted, setMounted] = useState(false);
-
-  // Prevent hydration mismatch by only rendering theme-dependent UI after mount
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const handleRun = async () => {
     if (!code.trim()) {
@@ -31,17 +27,30 @@ export function Toolbar({ onToggleAI, onToggleOutput, showAI, showOutput }: Tool
       return;
     }
 
+    // Get user's API key from token
+    const token = localStorage.getItem("studentToken");
+    if (!token) {
+      setOutput("Error: Please sign in to execute code.");
+      return;
+    }
+
+    // Create new AbortController for this request
+    abortControllerRef.current = new AbortController();
+    
     setIsExecuting(true);
     setOutput("Executing code...\n");
 
     try {
-      // TODO: Replace with actual API call to backend
-      const response = await fetch("http://localhost:3001/api/execute", {
+      // Get user's API key from localStorage (stored during login)
+      const apiKey = localStorage.getItem("geminiApiKey");
+
+      const response = await fetch(apiUrl("/api/execute"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ code }),
+        body: JSON.stringify({ code, apiKey }),
+        signal: abortControllerRef.current.signal,
       });
 
       if (!response.ok) {
@@ -49,20 +58,51 @@ export function Toolbar({ onToggleAI, onToggleOutput, showAI, showOutput }: Tool
       }
 
       const data = await response.json();
-      setOutput(data.output || "Execution completed successfully!");
+      
+      // Debug: Log the full response structure
+      console.log('📊 Execution Result:', data);
+      console.log('📊 Registers:', data.registers || data.execution?.finalState?.registers);
+      console.log('📊 Flags:', data.flags || data.execution?.finalState?.flags);
+      console.log('📊 Memory:', data.memory || data.finalMemory);
+      
+      // Check if there's an error in the response (e.g., invalid API key)
+      if (!data.success && data.error) {
+        setExecutionResult(null);
+        setOutput(data.output || `Error: ${data.error}`);
+        return;
+      }
+      
+      // Store full execution result for debug panels
+      setExecutionResult(data);
+      
+      // Format output for display
+      const output = data.summary || data.output || "Execution completed successfully!";
+      setOutput(output);
     } catch (error) {
-      setOutput(
-        `Error: ${error instanceof Error ? error.message : "Failed to execute code"}\n\n` +
-        `Make sure the backend is running on http://localhost:3001`
-      );
+      setExecutionResult(null);
+      
+      // Check if error is due to abort
+      if (error instanceof Error && error.name === 'AbortError') {
+        setOutput("Execution stopped by user.");
+      } else {
+        setOutput(
+          `Error: ${error instanceof Error ? error.message : "Failed to execute code"}\n\n` +
+          `Make sure the backend is running and accessible.`
+        );
+      }
     } finally {
       setIsExecuting(false);
+      abortControllerRef.current = null;
     }
   };
 
   const handleStop = () => {
+    // Abort the ongoing request if it exists
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
     setIsExecuting(false);
-    setOutput("Execution stopped by user.");
   };
 
   return (
@@ -125,24 +165,17 @@ export function Toolbar({ onToggleAI, onToggleOutput, showAI, showOutput }: Tool
           )}
         </Button>
 
-        {/* Theme Toggle */}
-        <Button
-          size="icon"
-          variant="ghost"
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          disabled={!mounted}
-          title={theme === "dark" ? "Light Mode" : "Dark Mode"}
-        >
-          {mounted ? (
-            theme === "dark" ? (
-              <Sun className="h-4 w-4" />
-            ) : (
-              <Moon className="h-4 w-4" />
-            )
-          ) : (
-            <div className="h-4 w-4" />
-          )}
-        </Button>
+        {/* Toggle Debug Panel */}
+        {onToggleDebug && (
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={onToggleDebug}
+            title={showDebug ? "Hide Debug Panels" : "Show Debug Panels"}
+          >
+            <Bug className={`h-4 w-4 ${showDebug ? 'text-primary' : ''}`} />
+          </Button>
+        )}
 
         <Button size="icon" variant="ghost" title="Settings">
           <Settings className="h-4 w-4" />

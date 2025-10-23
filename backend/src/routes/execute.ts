@@ -1,5 +1,6 @@
 import express from 'express';
 import { getSystemPrompt } from '../utils/promptLoader';
+import { Session } from '../models/Session';
 
 const router = express.Router();
 
@@ -191,7 +192,7 @@ function formatExecutionOutput(data: any): string {
 // Execute assembly code
 router.post('/', async (req, res) => {
   try {
-    const { code } = req.body;
+    const { code, apiKey } = req.body;
 
     if (!code || typeof code !== 'string') {
       return res.status(400).json({ error: 'Code is required' });
@@ -199,22 +200,19 @@ router.post('/', async (req, res) => {
 
     console.log('[/api/execute] Received code:', code);
 
-    // Read Gemini API key
-    const apiKey = process.env.GEMINI_API_KEY;
-
-    // Check if AI is configured
+    // Check if user provided API key
     if (!apiKey) {
       const errorOutput = `❌ AI Execution Failed
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Error: AI provider not configured.
+Error: No Gemini API key provided.
 
-Please set the GEMINI_API_KEY in the backend/.env file and restart the server.
+Please provide your Gemini API key during sign-in.
 `;
-      return res.status(500).json({ 
+      return res.status(400).json({ 
         success: false, 
         output: errorOutput, 
-        error: 'AI provider not configured. Please set GEMINI_API_KEY in backend/.env' 
+        error: 'No Gemini API key provided' 
       });
     }
 
@@ -284,7 +282,83 @@ IMPORTANT:
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Gemini API Error Response:', errorText);
-        throw new Error(`Gemini API error: ${response.statusText}`);
+        
+        let errorJson: any = {};
+        try {
+          errorJson = JSON.parse(errorText);
+        } catch (e) {
+          // Not JSON
+        }
+
+        // Check for API key errors specifically
+        if (response.status === 400 && (errorText.includes('API_KEY_INVALID') || errorText.includes('API key not valid'))) {
+          const errorOutput = `❌ Invalid API Key
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Your Gemini API key is invalid or has been revoked.
+
+Error: ${errorJson.error?.message || 'API key not valid'}
+
+💡 How to fix:
+1. Get a new API key from: https://aistudio.google.com/app/apikey
+2. Sign out and sign in again with the new key
+3. Make sure you copied the entire key (no extra spaces)
+
+Note: Free tier API keys have usage limits. Check your quota at:
+https://aistudio.google.com/app/apikey
+`;
+          return res.status(400).json({
+            success: false,
+            output: errorOutput,
+            error: 'Invalid API key',
+          });
+        }
+
+        if (response.status === 403 || response.status === 401) {
+          const errorOutput = `❌ API Key Authentication Failed
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Your API key is not authorized to use the Gemini API.
+
+Error: ${errorJson.error?.message || response.statusText}
+
+💡 Possible reasons:
+1. API key is invalid or expired
+2. API key doesn't have permission for Gemini API
+3. Your API quota has been exceeded
+
+Get a new key: https://aistudio.google.com/app/apikey
+`;
+          return res.status(403).json({
+            success: false,
+            output: errorOutput,
+            error: 'API key authentication failed',
+          });
+        }
+
+        if (response.status === 429) {
+          const errorOutput = `❌ Rate Limit Exceeded
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+You've exceeded the rate limit for the Gemini API.
+
+Free tier limits:
+- 15 requests per minute
+- 1 million tokens per minute
+
+💡 What to do:
+1. Wait a minute and try again
+2. Consider upgrading your API plan
+3. Check your usage at: https://aistudio.google.com/app/apikey
+`;
+          return res.status(429).json({
+            success: false,
+            output: errorOutput,
+            error: 'Rate limit exceeded',
+          });
+        }
+
+        throw new Error(`Gemini API error (${response.status}): ${errorJson.error?.message || response.statusText}`);
       }
 
       const data: any = await response.json();
@@ -326,6 +400,8 @@ IMPORTANT:
         steps: parsedOutput.execution?.steps || [],
         registers: parsedOutput.execution?.finalState?.registers || {},
         flags: parsedOutput.execution?.finalState?.flags || {},
+        memory: parsedOutput.finalMemory || [],
+        symbolTable: parsedOutput.symbolTable || [],
         rawJson: parsedOutput, // Include raw JSON for future use
       });
 
