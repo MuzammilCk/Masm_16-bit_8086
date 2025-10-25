@@ -28,6 +28,17 @@ export default function EditorPage() {
   const [showDebug, setShowDebug] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [mobileTab, setMobileTab] = useState<MobileTab>('editor');
+  
+  // Auto-show debug panel when executionResult is available
+  useEffect(() => {
+    if (executionResult && executionResult.success) {
+      console.log('🐛 Debug: Execution result received:', executionResult);
+      console.log('🐛 Debug: Registers:', executionResult.registers);
+      console.log('🐛 Debug: Flags:', executionResult.flags);
+      console.log('🐛 Debug: Memory:', executionResult.memory);
+      setShowDebug(true);
+    }
+  }, [executionResult]);
   const [isMobile, setIsMobile] = useState(false);
 
   // Detect mobile viewport
@@ -238,15 +249,18 @@ export default function EditorPage() {
       
       {/* Debug Panels (Bottom Section) */}
       {showDebug && executionResult && (
-        <div className={`border-t border-border bg-background ${
+        <div className={`border-t border-border bg-background shrink-0 ${
           isMobile ? 'h-96' : 'h-80'
         }`}>
           <div className="h-full flex flex-col">
             {/* Debug Header */}
-            <div className="h-10 border-b border-border flex items-center justify-between px-4 bg-muted/30">
+            <div className="h-10 border-b border-border flex items-center justify-between px-4 bg-muted/30 shrink-0">
               <div className="flex items-center gap-2">
                 <Bug className="h-4 w-4 text-primary" />
                 <h3 className="text-sm font-semibold">Debug Information</h3>
+                <span className="text-xs text-muted-foreground">
+                  ({Object.keys(executionResult.registers || {}).length} registers)
+                </span>
               </div>
               <Button
                 size="icon"

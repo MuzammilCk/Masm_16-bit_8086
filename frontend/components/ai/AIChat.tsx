@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Send, Sparkles, ChevronRight } from "lucide-react";
 import { AIMessageRenderer } from "./AIMessageRenderer";
 import { apiUrl } from "@/lib/api-config";
+import { useEditorStore } from "@/store/editorStore";
+import { useExecutionStore } from "@/store/executionStore";
 
 interface Message {
   role: "user" | "assistant";
@@ -20,6 +22,10 @@ export function AIChat({ onCollapse }: AIChatProps) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Get context from stores
+  const { code } = useEditorStore();
+  const { output, executionResult, errors } = useExecutionStore();
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -35,6 +41,20 @@ export function AIChat({ onCollapse }: AIChatProps) {
     setIsLoading(true);
 
     try {
+      // Get API key from localStorage
+      const apiKey = localStorage.getItem("geminiApiKey") || "";
+      
+      // Prepare context
+      const context = {
+        code: code || "",
+        output: output || "",
+        hasErrors: errors.length > 0,
+        errors: errors.map(e => `Line ${e.line}: ${e.message}`).join("\n"),
+        executionSuccess: executionResult?.success || false,
+        registers: executionResult?.registers || null,
+        flags: executionResult?.flags || null,
+      };
+      
       const response = await fetch(apiUrl("/api/ai/chat"), {
         method: "POST",
         headers: {
@@ -42,7 +62,9 @@ export function AIChat({ onCollapse }: AIChatProps) {
         },
         body: JSON.stringify({
           message: input,
-          code: "", // TODO: Get current code from editor store
+          context: context,
+          apiKey: apiKey,
+          conversationHistory: messages.slice(-6), // Send last 3 exchanges for context
         }),
       });
 
@@ -76,6 +98,16 @@ export function AIChat({ onCollapse }: AIChatProps) {
         <div className="flex items-center gap-2">
           <Sparkles className="h-4 w-4 text-primary" />
           <h3 className="text-sm font-semibold">AI Assistant</h3>
+          {code && (
+            <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded" title="Has code context">
+              Code
+            </span>
+          )}
+          {executionResult?.success && (
+            <span className="text-xs bg-green-500/10 text-green-600 px-2 py-0.5 rounded" title="Has execution results">
+              Results
+            </span>
+          )}
         </div>
         {onCollapse && (
           <Button
@@ -93,9 +125,29 @@ export function AIChat({ onCollapse }: AIChatProps) {
       {/* Messages */}
       <div className="flex-1 overflow-auto p-4 space-y-4">
         {messages.length === 0 ? (
-          <div className="text-muted-foreground text-sm text-center mt-8">
+          <div className="text-muted-foreground text-sm text-center mt-8 space-y-3">
             <Sparkles className="h-8 w-8 mx-auto mb-2 text-primary" />
-            <p>Ask me anything about assembly language!</p>
+            <p className="font-semibold text-foreground">Ask me anything about assembly language!</p>
+            <div className="text-xs space-y-1 max-w-md mx-auto">
+              <p className="text-muted-foreground">I can help you with:</p>
+              <ul className="list-disc list-inside text-left space-y-1">
+                <li>Explaining your code line-by-line</li>
+                <li>Understanding register values and flags</li>
+                <li>Debugging errors in your program</li>
+                <li>Learning 8086 instructions and syntax</li>
+                <li>Understanding execution results</li>
+              </ul>
+              {code && (
+                <p className="text-primary font-medium mt-2">
+                  I can see your current code!
+                </p>
+              )}
+              {executionResult?.success && (
+                <p className="text-green-600 font-medium">
+                  I can see your execution results!
+                </p>
+              )}
+            </div>
           </div>
         ) : (
           messages.map((message, index) => (

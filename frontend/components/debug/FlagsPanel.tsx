@@ -34,8 +34,25 @@ export function FlagsPanel({ flags, className = '' }: FlagsPanelProps) {
   const mainFlags = ['ZF', 'SF', 'CF', 'OF', 'PF', 'AF'];
   const controlFlags = ['IF', 'DF', 'TF'];
 
+  // Debug: Log what we received
+  React.useEffect(() => {
+    console.log('🚩 FlagsPanel received:', flags);
+    console.log('🚩 Flag keys:', Object.keys(flags));
+  }, [flags]);
+
+  // Convert flag value to boolean
+  const parseFlag = (value: any): boolean => {
+    if (value === null || value === undefined) return false;
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'string') {
+      return value === '1' || value.toLowerCase() === 'true';
+    }
+    if (typeof value === 'number') return value === 1;
+    return false;
+  };
+
   const FlagIndicator = ({ name, value }: { name: string; value: string | undefined }) => {
-    const isSet = value === '1';
+    const isSet = parseFlag(value);
     const description = FLAG_DESCRIPTIONS[name];
 
     return (
@@ -55,7 +72,7 @@ export function FlagsPanel({ flags, className = '' }: FlagsPanelProps) {
         >
           <div className="text-center">
             <div className="text-xs font-bold">{name}</div>
-            <div className="text-lg">{value === '1' ? '1' : '0'}</div>
+            <div className="text-lg">{isSet ? '1' : '0'}</div>
           </div>
         </div>
 

@@ -28,9 +28,36 @@ export function RegisterPanel({ registers, className = '' }: RegisterPanelProps)
   const segment = ['CS', 'DS', 'ES', 'SS'];
   const special = ['IP'];
 
+  // Debug: Log what we received
+  React.useEffect(() => {
+    console.log('🔍 RegisterPanel received:', registers);
+    console.log('🔍 Register keys:', Object.keys(registers));
+  }, [registers]);
+
+  // Convert and format register value
+  const formatValue = (value: any): string => {
+    if (value === null || value === undefined) return '0000';
+    
+    // If already a string, clean it
+    if (typeof value === 'string') {
+      // Remove 'H' suffix if present
+      let cleaned = value.replace(/H$/i, '').trim();
+      // Pad to 4 characters
+      return cleaned.padStart(4, '0').toUpperCase();
+    }
+    
+    // If number, convert to hex
+    if (typeof value === 'number') {
+      return value.toString(16).padStart(4, '0').toUpperCase();
+    }
+    
+    // Fallback
+    return String(value).padStart(4, '0').toUpperCase();
+  };
+
   const RegisterRow = ({ name, value }: { name: string; value: string | undefined }) => {
-    const displayValue = value || '0000';
-    const isNonZero = value && value !== '0000' && value !== '00';
+    const displayValue = formatValue(value);
+    const isNonZero = displayValue !== '0000';
     
     return (
       <div className="flex items-center justify-between py-1.5 px-2 hover:bg-accent/50 rounded text-sm">

@@ -19,6 +19,15 @@ export function MemoryViewer({ memory, className = '' }: MemoryViewerProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'hex' | 'decimal' | 'ascii'>('hex');
 
+  // Debug: Log what we received
+  React.useEffect(() => {
+    console.log('💾 MemoryViewer received:', memory);
+    console.log('💾 Memory entries:', memory.length);
+    if (memory.length > 0) {
+      console.log('💾 First entry:', memory[0]);
+    }
+  }, [memory]);
+
   const filteredMemory = memory.filter(
     (entry) =>
       entry.offset.toLowerCase().includes(searchTerm.toLowerCase()) ||

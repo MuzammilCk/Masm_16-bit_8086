@@ -11,19 +11,19 @@ const GEMINI_MODEL = 'gemini-2.0-flash';
 // Chat with AI
 router.post('/chat', async (req, res) => {
   try {
-    const { message, code } = req.body;
+    const { message, context, apiKey, conversationHistory } = req.body;
 
     if (!message || typeof message !== 'string') {
       return res.status(400).json({ error: 'Message is required' });
     }
 
-    // Read API key at runtime
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+    // Use user's API key or fall back to server key
+    const GEMINI_API_KEY = apiKey || process.env.GEMINI_API_KEY;
 
     if (!GEMINI_API_KEY) {
       return res.status(500).json({ 
         error: 'AI service not configured',
-        message: 'Please add GEMINI_API_KEY to environment variables'
+        message: 'Please provide your Gemini API key'
       });
     }
 
@@ -35,17 +35,48 @@ Your role is to help students learn 8086 assembly by:
 - Explaining concepts step-by-step
 - Providing code examples when helpful
 - Being friendly, patient, and encouraging
+- Referencing the student's current code and execution results when relevant
 
 Focus on teaching fundamentals like registers (AX, BX, CX, DX, SI, DI, SP, BP), memory addressing, flags, and common instructions (MOV, ADD, SUB, CMP, JMP, LOOP, INT, etc.).`;
     
-    // Build prompt for Gemini
+    // Build prompt with context
     let userPrompt = `${systemPrompt}\n\n`;
 
-    if (code) {
-      userPrompt += `Current code in editor:\n\`\`\`asm\n${code}\n\`\`\`\n\n`;
+    // Add code context if available
+    if (context?.code) {
+      userPrompt += `CURRENT CODE IN EDITOR:\n\`\`\`asm\n${context.code}\n\`\`\`\n\n`;
     }
 
-    userPrompt += `User question: ${message}\n\nRespond in plain text, be helpful and educational.`;
+    // Add execution context if available
+    if (context?.output) {
+      userPrompt += `LAST EXECUTION OUTPUT:\n${context.output.substring(0, 500)}${context.output.length > 500 ? '...' : ''}\n\n`;
+    }
+
+    // Add error context if present
+    if (context?.hasErrors && context?.errors) {
+      userPrompt += `CURRENT ERRORS:\n${context.errors}\n\n`;
+    }
+
+    // Add register/flag values if execution was successful
+    if (context?.executionSuccess && context?.registers) {
+      userPrompt += `FINAL REGISTER VALUES:\n`;
+      const regs = context.registers;
+      ['AX', 'BX', 'CX', 'DX', 'SI', 'DI', 'BP', 'SP'].forEach(reg => {
+        if (regs[reg]) userPrompt += `${reg}=${regs[reg]} `;
+      });
+      userPrompt += `\n\n`;
+    }
+
+    if (context?.executionSuccess && context?.flags) {
+      userPrompt += `FLAGS: `;
+      const flags = context.flags;
+      ['ZF', 'CF', 'SF', 'OF', 'PF'].forEach(flag => {
+        if (flags[flag] !== undefined) userPrompt += `${flag}=${flags[flag]} `;
+      });
+      userPrompt += `\n\n`;
+    }
+
+    userPrompt += `STUDENT QUESTION: ${message}\n\nProvide a helpful, educational response. Reference the code and execution results when relevant. Be concise but thorough.`;
 
     // Call Gemini API
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
